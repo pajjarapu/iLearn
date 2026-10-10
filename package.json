@@ -1,0 +1,26 @@
+{
+  "name": "kitchen-line",
+  "private": true,
+  "workspaces": [
+    "shared",
+    "server",
+    "client"
+  ],
+  "scripts": {
+    "dev": "concurrently -n server,client -c blue,magenta \"npm:dev:server\" \"npm:dev:client\"",
+    "dev:server": "npm run dev -w @kitchen/server",
+    "dev:client": "npm run dev -w @kitchen/client",
+    "seed": "npm run seed -w @kitchen/server",
+    "smoke": "npm run smoke -w @kitchen/server",
+    "typecheck": "npm run typecheck --workspaces --if-present"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "allowScripts": {
+    "esbuild@0.28.2": true
+  }
+}

@@ -1,0 +1,12 @@
+node_modules/
+dist/
+.env
+server/data/
+server/sandbox/
+*.db
+*.db-wal
+*.db-shm
+.DS_Store
+
+# Local demo shop. It keeps its own git history.
+sample-app/
