@@ -295,7 +295,7 @@ function MessagesScreen({ phone, highlight, onAction }) {
                   className={`conversation-item ${unread ? "unread" : ""}`.trim()}
                   onClick={() => onAction({ type: "open-contact", contactId: contact.id })}
                 >
-                  <Avatar initials={contact.initials} pattern={contact.pattern} />
+                  <Avatar initials={contact.initials} />
                   <div className="conversation-copy">
                     <div className="conversation-meta">
                       <span className="person-name">{contact.name}</span>
@@ -363,7 +363,7 @@ function ThreadScreen({ phone, highlight, onAction }) {
           <span className="back-count" aria-hidden="true">1</span>
         </Tap>
         <div className="thread-user">
-          <Avatar initials={contact.initials} pattern={contact.pattern} />
+          <Avatar initials={contact.initials} />
           <span className="thread-contact-copy">
             <span className="thread-name">{contact.name}<span className="contact-chevron" aria-hidden="true">›</span></span>
             <span className="thread-relation">{contact.relation}</span>
@@ -660,7 +660,7 @@ function CallingScreen({ phone, highlight, onAction }) {
   const contact = contactById(phone.contactId);
   return (
     <div className="practice-call-screen">
-      {contact ? <Avatar initials={contact.initials} pattern={contact.pattern} /> : null}
+      {contact ? <Avatar initials={contact.initials} /> : null}
       <h3>{contact?.name ?? "Unknown"}</h3>
       <p className="ios-call-status">calling…</p>
       <div className="ios-call-controls">

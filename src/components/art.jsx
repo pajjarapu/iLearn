@@ -129,52 +129,25 @@ function Snapshot() {
   );
 }
 
-export function Avatar({ initials, pattern }) {
+export function Avatar({ initials }) {
   return (
     <svg className="avatar" viewBox="0 0 72 72" aria-hidden="true">
-      <circle cx="36" cy="36" r="34" fill="#fbf7f1" stroke="#1c1612" strokeWidth="3" />
-      {pattern === "petals" ? (
-        <g fill="none" stroke="#1f4f45" strokeWidth="3">
-          <circle cx="36" cy="36" r="10" />
-          <circle cx="36" cy="16" r="6" />
-          <circle cx="36" cy="56" r="6" />
-          <circle cx="16" cy="36" r="6" />
-          <circle cx="56" cy="36" r="6" />
-        </g>
-      ) : null}
-      {pattern === "stripes" ? (
-        <g stroke="#8a5a3c" strokeWidth="3">
-          <path d="M18 20 h36 M18 32 h36 M18 44 h36 M18 56 h36" />
-        </g>
-      ) : null}
-      {pattern === "dots" ? (
-        <g fill="#1f4f45">
-          {[22, 36, 50].map((y) =>
-            [22, 36, 50].map((x) => <circle key={`${x}-${y}`} cx={x} cy={y} r="3" />),
-          )}
-        </g>
-      ) : null}
-      {pattern === "rings" ? (
-        <g fill="none" stroke="#3d6f86" strokeWidth="3">
-          <circle cx="36" cy="36" r="12" />
-          <circle cx="36" cy="36" r="22" />
-        </g>
-      ) : null}
-      {pattern === "waves" ? (
-        <g fill="none" stroke="#c46a4a" strokeWidth="3">
-          <path d="M14 28c8 8 14-8 22 0s14-8 22 0" />
-          <path d="M14 40c8 8 14-8 22 0s14-8 22 0" />
-          <path d="M14 52c8 8 14-8 22 0s14-8 22 0" />
-        </g>
-      ) : null}
+      <defs>
+        <linearGradient id="avatar-monogram" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor="#a5abb8" />
+          <stop offset="1" stopColor="#858994" />
+        </linearGradient>
+      </defs>
+      <circle cx="36" cy="36" r="36" fill="url(#avatar-monogram)" />
       <text
         x="36"
-        y="41"
+        y="36"
+        dy="0.35em"
         textAnchor="middle"
-        fontSize="16"
-        fontFamily="Atkinson Hyperlegible, Segoe UI, sans-serif"
-        fontWeight="700"
-        fill="#1c1612"
+        fontSize="28"
+        fontFamily="-apple-system, BlinkMacSystemFont, Inter, Segoe UI, sans-serif"
+        fontWeight="600"
+        fill="#fff"
       >
         {initials}
       </text>
