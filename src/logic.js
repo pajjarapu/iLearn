@@ -154,8 +154,11 @@ function createThreads() {
   return {
     maya: [
       { id: 1, from: "them", text: "Hi. I miss you." },
+      { id: 2, from: "me", text: "I miss you too. The garden is doing well.", historical: true },
+      { id: 3, from: "them", text: "That sounds lovely. Which flowers are blooming?" },
+      { id: 4, from: "me", text: "The yellow flowers by the path are starting to bloom.", historical: true },
       {
-        id: 2,
+        id: 5,
         from: "them",
         text: "Could you send a picture of the garden flowers?",
       },
@@ -197,9 +200,12 @@ export function createPhone() {
     stack: [],
     contactId: null,
     previewPhotoId: null,
+    selectedPhotoId: null,
     drafts: {},
     threads: createThreads(),
     day: null,
+    reminderDraft: null,
+    reminders: {},
     textScale: 1,
     banner: null,
     seq: 10,
@@ -305,14 +311,29 @@ export function reducePhone(state, action) {
       return push(base, "thread", { contactId: action.contactId });
     case "open-picker":
       if (state.screen !== "thread" || !state.contactId) return state;
-      return push(base, "picker");
+      return push(base, "picker", { selectedPhotoId: null });
+    case "select-photo": {
+      if (state.screen !== "picker" || !action.photoId || !photoById(action.photoId) || !state.contactId) {
+        return state;
+      }
+      const previous = state.drafts[state.contactId] ?? { text: "", photoId: null };
+      return {
+        ...popTo(base, "thread"),
+        contactId: state.contactId,
+        previewPhotoId: null,
+        drafts: {
+          ...state.drafts,
+          [state.contactId]: { ...previous, photoId: action.photoId },
+        },
+      };
+    }
     case "preview-photo":
       if (!photoById(action.photoId)) return state;
       if (state.screen === "photos") {
         return push(base, "photo-view", { previewPhotoId: action.photoId });
       }
       if (state.screen !== "picker") return state;
-      return push(base, "preview", { previewPhotoId: action.photoId });
+      return push(base, "preview", { previewPhotoId: action.photoId, selectedPhotoId: null });
     case "use-photo": {
       if (state.screen !== "preview" || !state.previewPhotoId || !state.contactId) {
         return state;
@@ -398,6 +419,24 @@ export function reducePhone(state, action) {
       return { ...base, screen: "camera" };
     case "open-day":
       return push(base, "day", { day: action.day });
+    case "open-reminder":
+      if (state.screen !== "day" || !CALENDAR.events[state.day]) return state;
+      return push(base, "reminder", {
+        reminderDraft: state.reminders[state.day] ?? null,
+      });
+    case "select-reminder":
+      if (state.screen !== "reminder" || !action.value) return state;
+      return { ...base, reminderDraft: action.value };
+    case "save-reminder":
+      if (state.screen !== "reminder" || !state.day || !state.reminderDraft) return state;
+      return {
+        ...popTo(base, "day"),
+        day: state.day,
+        reminders: {
+          ...state.reminders,
+          [state.day]: state.reminderDraft,
+        },
+      };
     case "toggle-scale":
       return { ...base, textScale: state.textScale > 1 ? 1 : 1.18 };
     default:
@@ -439,7 +478,7 @@ export function canonicalLevel(phone) {
 
 function hasDraftOrSend(phone) {
   for (const contact of CONTACTS) {
-    if (phone.threads[contact.id].some((message) => message.from === "me")) return true;
+    if (phone.threads[contact.id].some((message) => message.from === "me" && !message.historical)) return true;
   }
   return Object.values(phone.drafts).some((draft) => draft?.photoId || draft?.text?.trim());
 }
@@ -615,6 +654,18 @@ export function getGuidance(phone) {
     ));
   }
 
+  if (phone.screen === "picker" && phone.contactId === "maya" && phone.selectedPhotoId === "flowers") {
+    return step(4, "picker-add", "Add the garden photo", "Garden flowers is selected. Tap Add to review it before attaching it to the message.", term(
+      "Selected",
+      "A checkmark means a photo is selected. Add moves it to a review screen; it is not sent yet.",
+    ));
+  }
+
+  if (phone.screen === "picker" && phone.contactId === "maya" && phone.selectedPhotoId) {
+    const selected = photoById(phone.selectedPhotoId);
+    return recovery("picker-add", `${selected.label} is selected`, "Maya asked for Garden flowers. Tap Add to review this photo, then choose another picture.", null);
+  }
+
   if (phone.screen === "picker" && phone.contactId === "maya") {
     return step(4, "photo-flowers", "Choose the garden", "Tap the picture labeled Garden flowers. Tomato vines and the front porch are different photos.", term(
       "Photo library",
@@ -689,7 +740,9 @@ export function matchesTarget(target, action) {
     case "attach":
       return action.type === "open-picker";
     case "photo-flowers":
-      return action.type === "preview-photo" && action.photoId === "flowers";
+      return action.type === "select-photo" && action.photoId === "flowers";
+    case "picker-add":
+      return action.type === "preview-photo";
     case "use-photo":
       return action.type === "use-photo";
     case "send":
@@ -806,7 +859,7 @@ export function listUserSends(phone) {
   const rows = [];
   for (const contact of CONTACTS) {
     for (const message of phone.threads[contact.id]) {
-      if (message.from !== "me") continue;
+      if (message.from !== "me" || message.historical) continue;
       const photo = photoById(message.photoId);
       rows.push({
         id: message.id,

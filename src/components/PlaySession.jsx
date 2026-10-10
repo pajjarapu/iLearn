@@ -40,6 +40,7 @@ export default function PlaySession({
   const [hintLevel, setHintLevel] = useState(0);
   const [controlNote, setControlNote] = useState(null);
   const [celebrated, setCelebrated] = useState(false);
+  const [phoneAlert, setPhoneAlert] = useState(null);
 
   const guidance = useMemo(() => getGuidance(phone), [phone]);
   const sends = useMemo(() => listUserSends(phone), [phone]);
@@ -78,6 +79,23 @@ export default function PlaySession({
   function dispatch(action) {
     const next = reducePhone(phone, action);
     const observation = observationFor(mode, phone, action, next);
+    const expected = getGuidance(phone);
+    const quietAction = action.type === "set-text" || action.type === "toggle-scale";
+    const unsupportedAttachment = action.type === "unsupported-attachment";
+    const isWrongTap =
+      unsupportedAttachment ||
+      (mode !== "game" && !quietAction && !matchesTarget(expected.target, action));
+
+    setPhoneAlert(
+      isWrongTap
+        ? {
+            title: unsupportedAttachment ? `${action.label} is not available` : "Try a different button",
+            message: unsupportedAttachment
+              ? "For this lesson, tap Photos to choose the saved picture of the garden flowers."
+              : observation ?? `That was not the next step. ${expected.body}`,
+          }
+        : null,
+    );
     setPhone(next);
     setSnaps((current) => nextSnapshots(current, next));
     if (action.type !== "set-text" && action.type !== "toggle-scale") {
@@ -219,8 +237,10 @@ export default function PlaySession({
       <Phone
         phone={phone}
         highlight={highlight}
+        alert={phoneAlert}
         speechOn={speechOn}
         onToggleSpeech={onToggleSpeech}
+        onDismissAlert={() => setPhoneAlert(null)}
         onAction={dispatch}
       />
     </section>

@@ -19,14 +19,30 @@ function walk(actions) {
   return actions.reduce(apply, createPhone());
 }
 
+const initialMayaMessages = createPhone().threads.maya;
+assert.equal(initialMayaMessages.length, 5);
+assert.ok(initialMayaMessages.some((message) => message.from === "me"));
+assert.match(initialMayaMessages[initialMayaMessages.length - 1].text, /garden flowers/i);
+assert.equal(listUserSends(createPhone()).length, 0);
+assert.equal(canonicalLevel(createPhone()), 0);
+
 const happy = walk([
   { type: "open-app", app: "messages" },
   { type: "open-contact", contactId: "maya" },
   { type: "open-picker" },
-  { type: "preview-photo", photoId: "flowers" },
-  { type: "use-photo" },
+  { type: "select-photo", photoId: "flowers" },
   { type: "send" },
 ]);
+
+const directAttach = walk([
+  { type: "open-app", app: "messages" },
+  { type: "open-contact", contactId: "maya" },
+  { type: "open-picker" },
+  { type: "select-photo", photoId: "flowers" },
+]);
+assert.equal(directAttach.screen, "thread");
+assert.equal(directAttach.drafts.maya.photoId, "flowers");
+assert.equal(getGuidance(directAttach).target, "send");
 
 assert.equal(hasSentFlowers(happy), true);
 assert.equal(happy.screen, "thread");
@@ -167,6 +183,17 @@ const day = walk([
 ]);
 assert.equal(day.screen, "day");
 assert.equal(day.day, 13);
+
+const reminder = walk([
+  { type: "open-app", app: "calendar" },
+  { type: "open-day", day: 13 },
+  { type: "open-reminder" },
+  { type: "select-reminder", value: "1 day before" },
+  { type: "save-reminder" },
+]);
+assert.equal(reminder.screen, "day");
+assert.equal(reminder.day, 13);
+assert.equal(reminder.reminders[13], "1 day before");
 
 const calling = walk([
   { type: "open-app", app: "phone" },

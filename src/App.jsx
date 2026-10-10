@@ -3,6 +3,7 @@ import { PLACES } from "./logic.js";
 import { canSpeak, silence, speak } from "./speech.js";
 import { CheckIcon, PlaceArt } from "./components/art.jsx";
 import PlaySession from "./components/PlaySession.jsx";
+import CommunitySession from "./components/CommunitySession.jsx";
 
 const STORAGE_KEY = "techtown-progress-v1";
 
@@ -11,6 +12,7 @@ const EMPTY_PROGRESS = {
   tutorial: false,
   practice: false,
   mission: false,
+  communityTutorial: false,
 };
 
 function loadProgress() {
@@ -81,7 +83,13 @@ export default function App() {
             headingRef={headingRef}
             mission={progress.mission}
             onOpenLesson={() => setView({ name: "lesson" })}
-            onOpenPlace={(placeId) => setView({ name: "future", placeId })}
+            onOpenPlace={(placeId) =>
+              setView(
+                placeId === "community" && progress.mission
+                  ? { name: "community" }
+                  : { name: "future", placeId },
+              )
+            }
           />
         ) : null}
         {view.name === "future" && place ? (
@@ -93,6 +101,22 @@ export default function App() {
             progress={progress}
             onBack={() => setView({ name: "town" })}
             onPlay={(mode) => setView({ name: "play", mode })}
+          />
+        ) : null}
+        {view.name === "community" ? (
+          <CommunityLesson
+            headingRef={headingRef}
+            done={progress.communityTutorial}
+            onBack={() => setView({ name: "town" })}
+            onPlay={() => setView({ name: "community-play" })}
+          />
+        ) : null}
+        {view.name === "community-play" ? (
+          <CommunitySession
+            speechOn={progress.speech}
+            onBack={() => setView({ name: "community" })}
+            onDone={() => mark("communityTutorial")}
+            onTown={() => setView({ name: "town" })}
           />
         ) : null}
         {view.name === "play" ? (
@@ -168,14 +192,14 @@ function Town({ headingRef, mission, onOpenLesson, onOpenPlace }) {
       <h2>Your neighborhood</h2>
       <div className="places">
         {PLACES.map((item) => {
-          const unlocked = item.id === "family" && mission;
+          const unlocked = (item.id === "family" || item.id === "community") && mission;
           const isNextStep = item.id === nextPlaceId;
           return (
             <button
               key={item.id}
               type="button"
-              className={`place ${item.id === "family" ? "featured" : ""} ${item.future ? "is-future" : ""} ${isNextStep ? "is-next-step" : ""}`}
-              onClick={() => (item.future ? onOpenPlace(item.id) : onOpenLesson())}
+              className={`place ${item.id === "family" ? "featured" : ""} ${item.future && !unlocked ? "is-future" : ""} ${isNextStep ? "is-next-step" : ""}`}
+              onClick={() => (item.id === "family" ? onOpenLesson() : onOpenPlace(item.id))}
             >
               <PlaceArt id={item.id} unlocked={unlocked} />
               <span className="kicker">
@@ -216,6 +240,33 @@ function FuturePlace({ headingRef, place, onBack }) {
       <p>Today’s visit is the family house, where you practice sending a photo.</p>
       <button type="button" className="primary-btn" onClick={onBack}>
         Return to the neighborhood
+      </button>
+    </article>
+  );
+}
+
+function CommunityLesson({ headingRef, done, onBack, onPlay }) {
+  return (
+    <article className="sheet">
+      <button type="button" className="secondary-btn" onClick={onBack}>
+        Back
+      </button>
+      <p className="kicker plain">Community center</p>
+      <h1 ref={headingRef} tabIndex={-1}>
+        Add a calendar reminder
+      </h1>
+      <PlaceArt id="community" unlocked />
+      <p>
+        Find Book club in the practice Calendar and add a reminder for one day before the event.
+      </p>
+      <button type="button" className="mode-card" onClick={onPlay}>
+        <span className="kicker">
+          {done ? <><CheckIcon /> Finished</> : "Part 1"}
+        </span>
+        <span className="place-name">Tutorial</span>
+        <span className="place-summary">
+          We highlight Calendar, Book club, and each reminder button in order.
+        </span>
       </button>
     </article>
   );
