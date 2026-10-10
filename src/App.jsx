@@ -119,6 +119,8 @@ export default function App() {
 }
 
 function Town({ headingRef, mission, onOpenLesson, onOpenPlace }) {
+  const nextPlaceId = mission ? "community" : null;
+
   return (
     <div className="town">
       <div className="hero">
@@ -131,12 +133,17 @@ function Town({ headingRef, mission, onOpenLesson, onOpenPlace }) {
         </p>
       </div>
       {mission ? (
-        <p className="unlock-banner" role="status">
-          <CheckIcon />
-          <span>
-            <strong>Family house is unlocked.</strong> You sent Maya the garden photo.
-          </span>
-        </p>
+        <>
+          <p className="unlock-banner" role="status">
+            <CheckIcon />
+            <span>
+              <strong>Family house is unlocked.</strong> You sent Maya the garden photo.
+            </span>
+          </p>
+          <p className="note-card" role="status">
+            <strong>Next step:</strong> Community center is ready to explore.
+          </p>
+        </>
       ) : null}
       <ol className="how">
         <li>
@@ -162,11 +169,12 @@ function Town({ headingRef, mission, onOpenLesson, onOpenPlace }) {
       <div className="places">
         {PLACES.map((item) => {
           const unlocked = item.id === "family" && mission;
+          const isNextStep = item.id === nextPlaceId;
           return (
             <button
               key={item.id}
               type="button"
-              className={`place ${item.id === "family" ? "featured" : ""} ${item.future ? "is-future" : ""}`}
+              className={`place ${item.id === "family" ? "featured" : ""} ${item.future ? "is-future" : ""} ${isNextStep ? "is-next-step" : ""}`}
               onClick={() => (item.future ? onOpenPlace(item.id) : onOpenLesson())}
             >
               <PlaceArt id={item.id} unlocked={unlocked} />
@@ -174,6 +182,10 @@ function Town({ headingRef, mission, onOpenLesson, onOpenPlace }) {
                 {unlocked ? (
                   <>
                     <CheckIcon /> Unlocked
+                  </>
+                ) : isNextStep ? (
+                  <>
+                    <CheckIcon /> Next step
                   </>
                 ) : (
                   item.kicker

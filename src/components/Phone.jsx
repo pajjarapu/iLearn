@@ -12,6 +12,13 @@ const APPS = [
 ];
 
 const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+const CONVO_TIMESTAMPS = {
+  maya: "9:41 AM",
+  luis: "Yesterday",
+  sam: "9:15 AM",
+  patel: "8:50 AM",
+  rosa: "Mon",
+};
 
 export default function Phone({ phone, highlight, speechOn, onToggleSpeech, onAction }) {
   const shellRef = useRef(null);
@@ -114,6 +121,9 @@ export default function Phone({ phone, highlight, speechOn, onToggleSpeech, onAc
             ) : null}
             {phone.screen === "about" ? <AboutScreen /> : null}
           </div>
+          <div className="home-indicator" aria-hidden="true">
+            <span />
+          </div>
         </div>
       </div>
     </div>
@@ -177,42 +187,57 @@ function MessagesScreen({ phone, highlight, onAction }) {
   });
 
   return (
-    <div>
-      <label className="field">
-        <span>Search</span>
+    <div className="messages-screen">
+      <header className="messages-header">
+        <h2>Messages</h2>
+        <Tap id="compose" highlight={highlight} className="compose-btn" onClick={() => onAction({ type: "messages" })}>
+          ✎
+        </Tap>
+      </header>
+
+      <label className="search-field" aria-label="Search messages">
+        <span aria-hidden="true">⌕</span>
         <input
           value={query}
           onChange={(event) => setQuery(event.target.value)}
-          placeholder="Type a name"
+          placeholder="Search"
         />
       </label>
+
       {query ? (
-        <button type="button" className="text-btn" onClick={() => setQuery("")}>
+        <button type="button" className="text-btn clear-search" onClick={() => setQuery("")}>
           Clear search
         </button>
       ) : null}
+
       {people.length === 0 ? (
         <p className="phone-note">
           <strong>Note.</strong> No one on this practice phone matches that search. You can clear it and look for Maya.
         </p>
       ) : (
-        <ul className="people">
+        <ul className="conversation-list">
           {people.map((contact) => {
             const last = phone.threads[contact.id][phone.threads[contact.id].length - 1];
+            const unread = contact.id === "maya" && !phone.threads[contact.id].some((message) => message.from === "me");
             return (
               <li key={contact.id}>
                 <Tap
                   id={`contact-${contact.id}`}
                   highlight={highlight}
-                  className="person"
+                  className={`conversation-item ${unread ? "unread" : ""}`.trim()}
                   onClick={() => onAction({ type: "open-contact", contactId: contact.id })}
                 >
                   <Avatar initials={contact.initials} pattern={contact.pattern} />
-                  <span className="person-copy">
-                    <span className="person-name">{contact.name}</span>
-                    <span className="person-relation">{contact.relation}</span>
-                    <span className="person-preview">{last?.text ?? contact.preview}</span>
-                  </span>
+                  <div className="conversation-copy">
+                    <div className="conversation-meta">
+                      <span className="person-name">{contact.name}</span>
+                      <time>{CONVO_TIMESTAMPS[contact.id] ?? "Now"}</time>
+                    </div>
+                    <div className="conversation-preview-row">
+                      <span className="person-preview">{last?.text ?? contact.preview}</span>
+                      {unread ? <span className="unread-dot" aria-label="Unread message" /> : null}
+                    </div>
+                  </div>
                 </Tap>
               </li>
             );
@@ -229,6 +254,9 @@ function ThreadScreen({ phone, highlight, onAction }) {
   const draft = phone.drafts[phone.contactId] ?? { text: "", photoId: null };
   const draftPhoto = photoById(draft.photoId);
   const endRef = useRef(null);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const lastOutgoing = [...messages].reverse().find((message) => message.from === "me");
+  const sendReady = Boolean(draft.text.trim() || draftPhoto);
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ block: "end" });
@@ -238,16 +266,28 @@ function ThreadScreen({ phone, highlight, onAction }) {
 
   return (
     <div className="thread">
-      <p className="thread-who">
-        {contact.name}
-        <span>{contact.relation}</span>
-      </p>
+      <header className="conversation-header">
+        <Tap id="back" highlight={highlight} className="back-btn" onClick={() => onAction({ type: "back" })}>
+          Back
+        </Tap>
+        <div className="thread-user">
+          <Avatar initials={contact.initials} pattern={contact.pattern} />
+          <div>
+            <span className="thread-name">{contact.name}</span>
+            <span className="thread-relation">{contact.relation}</span>
+          </div>
+        </div>
+        <div className="header-spacer" aria-hidden="true" />
+      </header>
+
       <ol className="bubbles">
-        {messages.map((message) => {
+        {messages.map((message, index) => {
           const photo = photoById(message.photoId);
+          const isMine = message.from === "me";
+          const showStatus = isMine && index === messages.length - 1 && message.from === "me";
           return (
-            <li key={message.id} className={message.from === "me" ? "mine" : "theirs"}>
-              <span className="bubble-kicker">{message.from === "me" ? "You" : contact.short}</span>
+            <li key={message.id} className={isMine ? "mine" : "theirs"}>
+              <span className="bubble-kicker">{isMine ? "You" : contact.short}</span>
               {photo ? (
                 <figure className="bubble-photo">
                   <PhotoArt id={photo.id} />
@@ -255,11 +295,13 @@ function ThreadScreen({ phone, highlight, onAction }) {
                 </figure>
               ) : null}
               {message.text ? <p>{message.text}</p> : null}
+              {showStatus ? <span className="message-status">Delivered</span> : null}
             </li>
           );
         })}
         <li ref={endRef} />
       </ol>
+
       {draftPhoto ? (
         <div className="draft-photo">
           <PhotoArt id={draftPhoto.id} />
@@ -279,26 +321,49 @@ function ThreadScreen({ phone, highlight, onAction }) {
           </div>
         </div>
       ) : null}
+
       <div className="composer">
-        <Tap
-          id="attach"
-          highlight={highlight}
-          className="composer-photo"
-          onClick={() => onAction({ type: "open-picker" })}
-        >
-          <AppIcon name="picture" />
-          Photo
-        </Tap>
-        <label className="field grow">
-          <span>Message</span>
+        <div className="attachment-wrap">
+          <Tap
+            id="attach"
+            highlight={highlight}
+            className="composer-photo"
+            onClick={() => setMenuOpen((open) => !open)}
+          >
+            +
+          </Tap>
+          {menuOpen ? (
+            <div className="attachment-menu" role="menu" aria-label="Attachment options">
+              <button
+                type="button"
+                className="attachment-option"
+                onClick={() => {
+                  setMenuOpen(false);
+                  onAction({ type: "open-picker" });
+                }}
+              >
+                Photos
+              </button>
+            </div>
+          ) : null}
+        </div>
+
+        <label className="field grow composer-field">
+          <span className="sr-only">Message</span>
           <input
             value={draft.text}
             onChange={(event) => onAction({ type: "set-text", text: event.target.value })}
-            placeholder="Write a few words, if you want"
+            placeholder="iMessage"
           />
         </label>
-        <Tap id="send" highlight={highlight} className="send-btn" onClick={() => onAction({ type: "send" })}>
-          Send
+
+        <Tap
+          id="send"
+          highlight={highlight}
+          className={`send-btn ${sendReady ? "ready" : ""}`.trim()}
+          onClick={() => onAction({ type: "send" })}
+        >
+          {sendReady ? "↑" : "Send"}
         </Tap>
       </div>
     </div>
