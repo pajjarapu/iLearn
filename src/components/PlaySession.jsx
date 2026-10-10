@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import {
   createPhone,
-  gameHint,
   getGuidance,
   hasSentFlowers,
   listUserSends,
@@ -19,7 +18,6 @@ import { StepTrail } from "./LearningUI.jsx";
 const MODE_LABELS = {
   tutorial: "Tutorial",
   practice: "Guided practice",
-  game: "Game mission",
 };
 
 export default function PlaySession({
@@ -29,16 +27,13 @@ export default function PlaySession({
   onBack,
   onTutorialDone,
   onPracticeDone,
-  onMissionDone,
   onPractice,
-  onMission,
   onTown,
 }) {
   const [phone, setPhone] = useState(() => createPhone());
   const [snaps, setSnaps] = useState(() => [createPhone()]);
   const [note, setNote] = useState(null);
   const [helpOn, setHelpOn] = useState(false);
-  const [hintLevel, setHintLevel] = useState(0);
   const [controlNote, setControlNote] = useState(null);
   const [celebrated, setCelebrated] = useState(false);
   const [phoneAlert, setPhoneAlert] = useState(null);
@@ -55,8 +50,8 @@ export default function PlaySession({
           : null;
 
   const spoken = useMemo(
-    () => spokenText({ mode, guidance, note, helpOn, hintLevel, phone, sends }),
-    [mode, guidance, note, helpOn, hintLevel, phone, sends],
+    () => spokenText({ mode, guidance, note, helpOn, sends }),
+    [mode, guidance, note, helpOn, sends],
   );
 
   useEffect(() => {
@@ -74,8 +69,7 @@ export default function PlaySession({
     setCelebrated(true);
     if (mode === "tutorial") onTutorialDone();
     if (mode === "practice") onPracticeDone();
-    if (mode === "game") onMissionDone();
-  }, [guidance.complete, celebrated, mode, onTutorialDone, onPracticeDone, onMissionDone]);
+  }, [guidance.complete, celebrated, mode, onTutorialDone, onPracticeDone]);
 
   function dispatch(action) {
     const next = reducePhone(phone, action);
@@ -85,7 +79,7 @@ export default function PlaySession({
     const unsupportedAttachment = action.type === "unsupported-attachment";
     const isWrongTap =
       unsupportedAttachment ||
-      (mode !== "game" && !quietAction && !matchesTarget(expected.target, action));
+      (!quietAction && !matchesTarget(expected.target, action));
 
     setPhoneAlert(
       isWrongTap
@@ -100,20 +94,15 @@ export default function PlaySession({
     setPhone(next);
     setSnaps((current) => nextSnapshots(current, next));
     if (action.type !== "set-text" && action.type !== "toggle-scale") {
-      if (mode === "game") {
-        if (action.type === "send") setNote(observation);
-      } else {
-        setNote(observation);
-      }
+      setNote(observation);
     }
     setControlNote(null);
-    if (mode !== "game" && matchesTarget(getGuidance(phone).target, action)) {
+    if (matchesTarget(getGuidance(phone).target, action)) {
       setHelpOn(false);
     }
     const before = canonicalProgress(phone);
     const after = canonicalProgress(next);
     if (after !== null && after !== before) {
-      setHintLevel(0);
       setHelpOn(false);
     }
   }
@@ -123,7 +112,6 @@ export default function PlaySession({
     setSnaps(nextSnaps);
     setNote(null);
     setHelpOn(false);
-    setHintLevel(0);
     setControlNote(message);
   }
 
@@ -160,11 +148,6 @@ export default function PlaySession({
   }
 
   function askHelp() {
-    if (mode === "game") {
-      setHintLevel((level) => Math.min(3, level + 1));
-      setControlNote(null);
-      return;
-    }
     setHelpOn(true);
     setControlNote(null);
   }
@@ -216,7 +199,6 @@ export default function PlaySession({
             mode={mode}
             sends={sends}
             onPractice={onPractice}
-            onMission={onMission}
             onTown={onTown}
             onReplay={startOver}
           />
@@ -226,8 +208,6 @@ export default function PlaySession({
             guidance={guidance}
             note={note}
             helpOn={helpOn}
-            hintLevel={hintLevel}
-            phone={phone}
           />
         )}
         {controlNote ? (
@@ -254,17 +234,9 @@ function canonicalProgress(phone) {
   return getGuidance(phone).step;
 }
 
-function Instruction({ mode, guidance, note, helpOn, hintLevel, phone }) {
-  const hint = mode === "game" && hintLevel > 0 ? gameHint(phone, hintLevel) : null;
+function Instruction({ mode, guidance, note, helpOn }) {
   return (
     <div className="instruction" aria-live="polite">
-      {mode === "game" ? (
-        <>
-          <h2>The garden photo</h2>
-          <p className="story">Your granddaughter Maya wants to see your garden. Send her the flower photo.</p>
-          <p>Take your time. There is no timer, and a wrong tap does not cost you anything.</p>
-        </>
-      ) : null}
       {mode === "practice" ? (
         <>
           <h2>Send the garden photo</h2>
@@ -292,12 +264,6 @@ function Instruction({ mode, guidance, note, helpOn, hintLevel, phone }) {
           <p>{guidance.body}</p>
         </div>
       ) : null}
-      {hint ? (
-        <div className="hint-card">
-          <p className="step-count">Hint {hintLevel} of 3</p>
-          <p>{hint}</p>
-        </div>
-      ) : null}
       {mode === "tutorial" && guidance.term ? (
         <div className="term-card">
           <p className="step-count">{guidance.term.name}</p>
@@ -314,7 +280,7 @@ function Instruction({ mode, guidance, note, helpOn, hintLevel, phone }) {
   );
 }
 
-function Success({ mode, sends, onPractice, onMission, onTown, onReplay }) {
+function Success({ mode, sends, onPractice, onTown, onReplay }) {
   return (
     <div className="instruction" aria-live="polite">
       <p className="step-count">
@@ -323,13 +289,6 @@ function Success({ mode, sends, onPractice, onMission, onTown, onReplay }) {
         </span>{" "}
         Done
       </p>
-      {mode === "game" ? (
-        <>
-          <h2>Mission complete</h2>
-          <p>You sent Garden flowers to Maya. She can see the blooms by the path.</p>
-          <p>This lesson is finished. You can revisit it any time.</p>
-        </>
-      ) : null}
       {mode === "tutorial" ? (
         <>
           <h2>You finished the tour</h2>
@@ -339,7 +298,7 @@ function Success({ mode, sends, onPractice, onMission, onTown, onReplay }) {
       {mode === "practice" ? (
         <>
           <h2>You sent it yourself</h2>
-          <p>The garden photo reached Maya without the buttons lighting up for you. The mission uses the same steps inside a short story.</p>
+          <p>The garden photo reached Maya without the buttons lighting up for you.</p>
         </>
       ) : null}
       <h3>What you sent</h3>
@@ -354,26 +313,18 @@ function Success({ mode, sends, onPractice, onMission, onTown, onReplay }) {
             Try guided practice
           </button>
         ) : null}
-        {mode !== "game" ? (
-          <button type="button" className="primary-btn" onClick={onMission}>
-            Try the mission
-          </button>
-        ) : null}
-        <button type="button" className={mode === "game" ? "primary-btn" : "secondary-btn"} onClick={onTown}>Back to lessons</button>
+        <button type="button" className={mode === "practice" ? "primary-btn" : "secondary-btn"} onClick={onTown}>Back to lessons</button>
         <button type="button" className="secondary-btn" onClick={onReplay}>
-          {mode === "game" ? "Play the mission again" : "Start over"}
+          Start over
         </button>
       </div>
     </div>
   );
 }
 
-function spokenText({ mode, guidance, note, helpOn, hintLevel, phone, sends }) {
+function spokenText({ mode, guidance, note, helpOn, sends }) {
   if (guidance.complete) {
     const recap = sends.map((row) => sendSummary(row)).join(" ");
-    if (mode === "game") {
-      return `Mission complete. You sent Garden flowers to Maya. Family house is unlocked. ${recap}`;
-    }
     if (mode === "practice") {
       return `You sent the garden photo to Maya. ${recap}`;
     }
@@ -381,10 +332,7 @@ function spokenText({ mode, guidance, note, helpOn, hintLevel, phone, sends }) {
   }
 
   const parts = [];
-  if (mode === "game") {
-    parts.push("Your granddaughter Maya wants to see your garden. Send her the flower photo.");
-    if (hintLevel > 0) parts.push(gameHint(phone, hintLevel));
-  } else if (mode === "practice") {
+  if (mode === "practice") {
     parts.push("Send Maya the photo labeled Garden flowers.");
     if (helpOn) parts.push(guidance.title, guidance.body);
   } else {

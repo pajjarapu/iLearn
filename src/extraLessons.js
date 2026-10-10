@@ -5,6 +5,8 @@ export const EXTRA_LESSONS = {
     title: "Make a phone call",
     description: "Open Phone, choose Rosa from your contacts, start a practice call, and hang up.",
     progressKey: "callTutorial",
+    practiceKey: "callPractice",
+    goal: "Call Rosa from your contacts, then hang up when you are ready.",
     success: "You chose Rosa, started a practice phone call, and ended it using the red hang-up button.",
     steps: [
       { screen: "home", target: "app-phone", type: "open-app", app: "phone", title: "Open Phone", body: "Tap the green Phone icon in the Dock." },
@@ -18,6 +20,8 @@ export const EXTRA_LESSONS = {
     title: "Spot suspicious messages",
     description: "Read a fictional delivery message, identify warning signs, and practice reporting it.",
     progressKey: "safetyTutorial",
+    practiceKey: "safetyPractice",
+    goal: "Find the message from the unfamiliar number, then delete it and report it as junk without opening the link.",
     success: "You spotted the urgent request, unfamiliar link, and request for card details. You reported the message without opening its link or replying.",
     steps: [
       { screen: "home", target: "app-messages", type: "open-app", app: "messages", title: "Open Messages", body: "Tap Messages. An unfamiliar sender has sent a delivery message." },

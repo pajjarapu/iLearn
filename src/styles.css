@@ -3121,7 +3121,6 @@ button:not(:disabled):active {
 .safety-message-header { position: relative; background: #fafafa; margin: -0.2rem -0.75rem 0; padding: 0.6rem; }
 .safety-back { position: absolute; left: 0.7rem; top: 0.8rem; border: 0; background: transparent; color: #007aff; font-size: 2rem; line-height: 1; }
 .safety-message-bubble { position: relative; align-self: flex-start; }
-.safety-message-bubble::before { content: ""; position: absolute; bottom: 0; left: -0.25rem; width: 0.8rem; height: 0.8rem; border-radius: 0 0 1rem; background: #e9e9eb; }
 .safety-review { width: auto; align-self: center; padding: 0.55rem 0.8rem; background: #f2f2f7; color: #007aff; }
 .safety-composer { display: flex; gap: 0.7rem; margin-top: auto; padding-top: 1.5rem; }
 .safety-composer > button { min-height: 2.4rem; border: 0; background: transparent; color: #8e8e93; font-size: 1.7rem; }
@@ -3229,7 +3228,6 @@ button:not(:disabled):active {
 .safety-back > span { display: grid; place-items: center; width: 1.1rem; height: 1.1rem; border-radius: 50%; color: #111; background: #f5f5f5; font-size: 0.7rem; }
 .safety-message-time { margin: 0.75rem 0; color: #98989f; }
 .safety-message-bubble { max-width: 78%; padding: 0.8rem; border-radius: 1.2rem 1.2rem 1.2rem 0.4rem; color: #f5f5f5; background: #303033; font-size: 1rem; line-height: 1.24; }
-.safety-message-bubble::before { background: #303033; }
 .safety-fake-link { margin-top: 0.8rem; color: #0a84ff; }
 .safety-review { padding: 0.55rem 0.8rem; color: #64b9f7; background: #202023; }
 .safety-clues { color: #ede7d2; background: #29271f; }

@@ -7,7 +7,7 @@ import { EXTRA_LESSONS } from "./extraLessons.js";
 import { Asset, Brand, Icon, BottomNav, LessonCard, LessonMenu, LESSONS } from "./components/LearningUI.jsx";
 
 const STORAGE_KEY = "techtown-progress-v1";
-const EMPTY_PROGRESS = { speech: false, tutorial: false, practice: false, mission: false, communityTutorial: false, callTutorial: false, safetyTutorial: false };
+const EMPTY_PROGRESS = { speech: false, tutorial: false, practice: false, communityTutorial: false, communityPractice: false, callTutorial: false, callPractice: false, safetyTutorial: false, safetyPractice: false };
 function readStored(key, fallback) {
   try { return JSON.parse(localStorage.getItem(key)) ?? fallback; } catch { return fallback; }
 }
@@ -51,7 +51,7 @@ export default function App() {
   }
   function openLesson(lessonId) { setView({ name: "lesson", lessonId }); }
   function startLesson(lessonId, mode = "tutorial") {
-    setView(lessonId === "family" ? { name: "play", mode, lessonId } : lessonId === "community" ? { name: "community-play", lessonId } : { name: "extra-play", lessonId });
+    setView({ name: lessonId === "family" ? "play" : lessonId === "community" ? "community-play" : "extra-play", mode, lessonId });
   }
   const completed = LESSONS.filter((lesson) => lessonFinished(lesson, progress));
   const filtered = LESSONS.filter((lesson) => (filter === "All" || lesson.category === filter) && `${lesson.title} ${lesson.description}`.toLowerCase().includes(query.toLowerCase().trim()));
@@ -79,19 +79,19 @@ export default function App() {
             <p className="learn-overline">Ready to learn,</p><h1 className="learn-heading" ref={headingRef} tabIndex={-1}>Your lessons</h1>
             {searchOpen && <label className="learn-search"><Icon name="search" /><span className="sr-only">Search lessons</span><input autoFocus value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Find a lesson…" type="search" /></label>}
             <div className="lesson-banner"><Asset name="s0-lessons-hero" /><div><h2>Take it slow</h2><p>Every lesson breaks a task into small, clear steps.</p></div></div>
-            <div className="learn-filters" aria-label="Filter lessons">{["All", "iPhone basics", "Apps", "Calls & messages", "Photos"].map((item) => <button key={item} aria-pressed={filter === item} className={filter === item ? "selected" : ""} onClick={() => setFilter(item)}>{item}</button>)}</div>
+            <div className="learn-filters" aria-label="Filter lessons">{["All", "iPhone basics", "Apps", "Calls & messages"].map((item) => <button key={item} aria-pressed={filter === item} className={filter === item ? "selected" : ""} onClick={() => setFilter(item)}>{item}</button>)}</div>
             <div className="lesson-feed">{filtered.map((lesson) => <LessonCard key={lesson.id} lesson={lesson} finished={lessonFinished(lesson, progress)} onOpen={() => openLesson(lesson.id)} />)}</div>
             {!filtered.length && <div className="learn-empty"><Icon name="search" /><h2>No lessons found</h2><p>Try a different word or browse all four lessons.</p><button className="learn-primary" onClick={() => { setFilter("All"); setQuery(""); }}>Show all lessons</button></div>}
           </>}
           {view.name === "lesson" && currentLesson && <LessonMenu lesson={currentLesson} progress={progress} headingRef={headingRef} onBack={() => navigate("lessons")} onStart={(mode) => startLesson(currentLesson.id, mode)} />}
-          {view.name === "play" && <PlaySession key={view.mode} mode={view.mode} speechOn={progress.speech} onToggleSpeech={toggleSpeech} onBack={() => openLesson("family")} onTutorialDone={() => mark("tutorial")} onPracticeDone={() => mark("practice")} onMissionDone={() => mark("mission")} onPractice={() => startLesson("family", "practice")} onMission={() => startLesson("family", "game")} onTown={() => navigate("lessons")} />}
-          {view.name === "community-play" && <CommunitySession speechOn={progress.speech} onBack={() => openLesson("community")} onDone={() => mark("communityTutorial")} onTown={() => navigate("lessons")} />}
-          {view.name === "extra-play" && <ExtraLessonSession key={view.lessonId} lessonId={view.lessonId} speechOn={progress.speech} onToggleSpeech={toggleSpeech} onBack={() => openLesson(view.lessonId)} onDone={() => mark(EXTRA_LESSONS[view.lessonId].progressKey)} onTown={() => navigate("lessons")} />}
+          {view.name === "play" && <PlaySession key={view.mode} mode={view.mode} speechOn={progress.speech} onToggleSpeech={toggleSpeech} onBack={() => openLesson("family")} onTutorialDone={() => mark("tutorial")} onPracticeDone={() => mark("practice")} onPractice={() => startLesson("family", "practice")} onTown={() => navigate("lessons")} />}
+          {view.name === "community-play" && <CommunitySession key={view.mode} mode={view.mode} speechOn={progress.speech} onBack={() => openLesson("community")} onDone={() => mark(view.mode === "practice" ? "communityPractice" : "communityTutorial")} onPractice={() => startLesson("community", "practice")} onTown={() => navigate("lessons")} />}
+          {view.name === "extra-play" && <ExtraLessonSession key={`${view.lessonId}-${view.mode}`} lessonId={view.lessonId} mode={view.mode} speechOn={progress.speech} onToggleSpeech={toggleSpeech} onBack={() => openLesson(view.lessonId)} onDone={() => mark(view.mode === "practice" ? EXTRA_LESSONS[view.lessonId].practiceKey : EXTRA_LESSONS[view.lessonId].progressKey)} onPractice={() => startLesson(view.lessonId, "practice")} onTown={() => navigate("lessons")} />}
           {view.name === "progress" && <>
             <p className="learn-overline">Look how far</p><h1 className="learn-heading" ref={headingRef} tabIndex={-1}>You've come</h1>
             <div className="milestone"><Asset name="s0-progress-milestones" /><div><strong>{completed.length}</strong><h2>{completed.length === 1 ? "Lesson learned" : "Lessons learned"}</h2><p>Every small step is a big win.</p></div></div>
             <h2 className="learn-section-title">Your completed lessons</h2>
-            {completed.length ? <div className="lesson-feed">{completed.map((lesson) => <LessonCard key={lesson.id} lesson={lesson} finished onOpen={() => openLesson(lesson.id)} compact date={lesson.keys.map((key) => progress.completedAt?.[key]).filter(Boolean).sort().at(-1)} />)}</div> : <div className="learn-empty"><Icon name="progress" /><h2>Your first win is waiting</h2><p>Finish any lesson and you'll see it here. There's no rush.</p><button className="learn-primary" onClick={() => navigate("lessons")}>Explore lessons <Icon name="arrow" /></button></div>}
+            {completed.length ? <div className="lesson-feed">{completed.map((lesson) => <LessonCard key={lesson.id} lesson={lesson} finished onOpen={() => openLesson(lesson.id)} compact progress={progress} />)}</div> : <div className="learn-empty"><Icon name="progress" /><h2>Your first win is waiting</h2><p>Finish any lesson and you'll see it here. There's no rush.</p><button className="learn-primary" onClick={() => navigate("lessons")}>Explore lessons <Icon name="arrow" /></button></div>}
           </>}
           {view.name === "support" && <Support headingRef={headingRef} onLessons={() => navigate("lessons")} onSpeak={toggleSpeech} speechOn={progress.speech} />}
         </main>

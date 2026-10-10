@@ -182,6 +182,86 @@ export function Avatar({ initials, pattern }) {
   );
 }
 
+export function LessonThumb({ id }) {
+  return (
+    <svg className="lesson-thumb" viewBox="0 0 400 400" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+      <defs>
+        <linearGradient id={`${id}-bg`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor={id === "safety" ? "#c9c3dc" : "#ccbfd4"} />
+          <stop offset="1" stopColor={id === "safety" ? "#f6cfb4" : "#f7c9ac"} />
+        </linearGradient>
+        <radialGradient id={`${id}-shadow`}>
+          <stop offset="0" stopColor="#6b4a4a" stopOpacity="0.32" />
+          <stop offset="1" stopColor="#6b4a4a" stopOpacity="0" />
+        </radialGradient>
+        <linearGradient id={`${id}-coral`} x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stopColor="#ff8a7a" />
+          <stop offset="1" stopColor="#ec6458" />
+        </linearGradient>
+        <linearGradient id={`${id}-mustard`} x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stopColor="#f2b24e" />
+          <stop offset="1" stopColor="#d48632" />
+        </linearGradient>
+        <linearGradient id={`${id}-mint`} x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stopColor="#a6e6d2" />
+          <stop offset="1" stopColor="#6fc8b0" />
+        </linearGradient>
+        <linearGradient id={`${id}-paper`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor="#fffaf5" />
+          <stop offset="1" stopColor="#f1e6dc" />
+        </linearGradient>
+      </defs>
+      <rect width="400" height="400" fill={`url(#${id}-bg)`} />
+      <ellipse cx="200" cy="330" rx="150" ry="22" fill={`url(#${id}-shadow)`} />
+      {id === "community" ? (
+        <g transform="translate(200 210) scale(0.82) translate(-200 -210)">
+          <g transform="rotate(-6 190 200)">
+            <rect x="96" y="104" width="190" height="200" rx="30" fill={`url(#${id}-coral)`} />
+            <rect x="96" y="104" width="190" height="56" rx="28" fill="#f2584d" />
+            <rect x="114" y="150" width="154" height="136" rx="18" fill={`url(#${id}-paper)`} />
+            {[0, 1, 2].map((row) => [0, 1, 2, 3].map((col) => (
+              <rect key={`${row}-${col}`} x={128 + col * 34} y={166 + row * 38} width="24" height="24" rx="7" fill={row === 1 && col === 2 ? "#6fc8b0" : "#efd9cb"} />
+            )))}
+            <rect x="136" y="88" width="18" height="40" rx="9" fill="#d9d2cc" />
+            <rect x="228" y="88" width="18" height="40" rx="9" fill="#d9d2cc" />
+            <path d="M110 120c20-8 50-10 70-8" stroke="#fff" strokeOpacity="0.35" strokeWidth="8" strokeLinecap="round" fill="none" />
+          </g>
+          <g transform="rotate(14 290 140)">
+            <path d="M290 86c-30 0-46 22-46 50v26l-14 18h120l-14-18v-26c0-28-16-50-46-50Z" fill={`url(#${id}-mustard)`} />
+            <circle cx="290" cy="192" r="13" fill="#c97a2c" />
+            <path d="M262 120c4-12 12-20 22-22" stroke="#fff" strokeOpacity="0.45" strokeWidth="7" strokeLinecap="round" fill="none" />
+          </g>
+          <path d="M318 262l7 14 15 2-11 10 3 15-14-7-14 7 3-15-11-10 15-2Z" fill="#5fc0a8" />
+        </g>
+      ) : null}
+      {id === "safety" ? (
+        <g transform="translate(200 210) scale(0.82) translate(-200 -210)">
+          <g transform="rotate(-8 180 200)">
+            <rect x="110" y="70" width="150" height="250" rx="34" fill="#3b3a44" />
+            <rect x="122" y="84" width="126" height="222" rx="24" fill={`url(#${id}-paper)`} />
+            <rect x="136" y="116" width="86" height="44" rx="18" fill="#e3dcd6" />
+            <rect x="136" y="172" width="98" height="58" rx="18" fill="#e3dcd6" />
+            <rect x="148" y="190" width="60" height="8" rx="4" fill="#a9c8ea" />
+            <rect x="148" y="206" width="40" height="8" rx="4" fill="#a9c8ea" />
+          </g>
+          <g transform="rotate(8 270 140)">
+            <path d="M222 92h96a30 30 0 0 1 30 30v26a30 30 0 0 1-30 30h-50l-26 22 6-22h-26a30 30 0 0 1-30-30v-26a30 30 0 0 1 30-30Z" fill={`url(#${id}-mustard)`} />
+            <path d="M270 110l30 52h-60Z" fill="#fff8ee" strokeLinejoin="round" stroke="#fff8ee" strokeWidth="8" />
+            <rect x="266" y="124" width="8" height="22" rx="4" fill="#d48632" />
+            <circle cx="270" cy="154" r="4.5" fill="#d48632" />
+            <path d="M210 106c10-6 22-8 34-8" stroke="#fff" strokeOpacity="0.45" strokeWidth="7" strokeLinecap="round" fill="none" />
+          </g>
+          <g transform="rotate(-10 120 270)">
+            <path d="M120 216l52 20v34c0 34-24 56-52 66-28-10-52-32-52-66v-34Z" fill={`url(#${id}-mint)`} />
+            <path d="M98 274l16 16 30-34" stroke="#fff" strokeWidth="11" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+            <path d="M80 244l30-12" stroke="#fff" strokeOpacity="0.5" strokeWidth="6" strokeLinecap="round" />
+          </g>
+        </g>
+      ) : null}
+    </svg>
+  );
+}
+
 export function PlaceArt({ id, unlocked }) {
   return (
     <svg className="place-art" viewBox="0 0 360 200" preserveAspectRatio="xMidYMid slice" aria-hidden="true">

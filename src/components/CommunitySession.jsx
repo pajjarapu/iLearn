@@ -88,23 +88,29 @@ function matches(target, action) {
   return false;
 }
 
-export default function CommunitySession({ speechOn, onBack, onDone, onTown }) {
+const PRACTICE_GOAL = "Add a reminder to Book club on October 13 so the phone alerts you one day before.";
+
+export default function CommunitySession({ mode = "tutorial", speechOn, onBack, onDone, onPractice, onTown }) {
+  const practice = mode === "practice";
   const [phone, setPhone] = useState(() => createPhone());
   const [alert, setAlert] = useState(null);
   const [celebrated, setCelebrated] = useState(false);
+  const [helpOn, setHelpOn] = useState(false);
   const guidance = useMemo(() => guidanceFor(phone), [phone]);
+
+  const spoken = guidance.complete
+    ? `${practice ? "Practice" : "Tutorial"} complete. The Book club reminder is saved for one day before.`
+    : practice
+      ? [PRACTICE_GOAL, helpOn ? `${guidance.title}. ${guidance.body}` : ""].filter(Boolean).join(" ")
+      : `${guidance.step ? `Step ${guidance.step} of 5. ` : ""}${guidance.title}. ${guidance.body}`;
 
   useEffect(() => {
     if (!speechOn) {
       silence();
       return;
     }
-    speak(
-      guidance.complete
-        ? "Tutorial complete. The Book club reminder is saved for one day before."
-        : `${guidance.step ? `Step ${guidance.step} of 5. ` : ""}${guidance.title}. ${guidance.body}`,
-    );
-  }, [speechOn, guidance]);
+    speak(spoken);
+  }, [speechOn, spoken]);
 
   useEffect(() => () => silence(), []);
 
@@ -122,9 +128,10 @@ export default function CommunitySession({ speechOn, onBack, onDone, onTown }) {
         ? null
         : {
             title: "Try a different button",
-            message: `That was not the next step. ${expected.body}`,
+            message: practice && !helpOn ? "That was not the next step. Tap Help me if you would like a hint." : `That was not the next step. ${expected.body}`,
           },
     );
+    if (correct) setHelpOn(false);
     setPhone((current) => reducePhone(current, action));
   }
 
@@ -132,11 +139,8 @@ export default function CommunitySession({ speechOn, onBack, onDone, onTown }) {
     setPhone(createPhone());
     setAlert(null);
     setCelebrated(false);
+    setHelpOn(false);
   }
-
-  const spoken = guidance.complete
-    ? "Tutorial complete. The Book club reminder is saved for one day before."
-    : `${guidance.title}. ${guidance.body}`;
 
   return (
     <section className="play">
@@ -144,6 +148,7 @@ export default function CommunitySession({ speechOn, onBack, onDone, onTown }) {
         <div className="control-row">
           <button type="button" className="secondary-btn" onClick={onBack}>Back</button>
           <button type="button" className="secondary-btn" onClick={startOver}>Start over</button>
+          {practice ? <button type="button" className="secondary-btn" onClick={() => setHelpOn(true)}>Help me</button> : null}
           <button
             type="button"
             className="secondary-btn"
@@ -155,8 +160,8 @@ export default function CommunitySession({ speechOn, onBack, onDone, onTown }) {
           </button>
         </div>
 
-        <StepTrail step={guidance.step} total={5} complete={guidance.complete} />
-        <p className="mode-kicker">Add a calendar reminder · Tutorial</p>
+        {practice ? null : <StepTrail step={guidance.step} total={5} complete={guidance.complete} />}
+        <p className="mode-kicker">Add a calendar reminder · {practice ? "Guided practice" : "Tutorial"}</p>
         <div className="instruction" aria-live="polite">
           {guidance.complete ? (
             <>
@@ -164,9 +169,22 @@ export default function CommunitySession({ speechOn, onBack, onDone, onTown }) {
               <h2>Reminder saved</h2>
               <p>Book club is on October 13. The phone will remind you one day before.</p>
               <div className="success-actions">
-                <button type="button" className="primary-btn" onClick={onTown}>Back to lessons</button>
+                {practice ? null : <button type="button" className="primary-btn" onClick={onPractice}>Try guided practice</button>}
+                <button type="button" className={practice ? "primary-btn" : "secondary-btn"} onClick={onTown}>Back to lessons</button>
                 <button type="button" className="secondary-btn" onClick={startOver}>Start over</button>
               </div>
+            </>
+          ) : practice ? (
+            <>
+              <h2>Add a calendar reminder</h2>
+              <p>{PRACTICE_GOAL} The buttons stay quiet unless you tap Help me.</p>
+              {helpOn ? (
+                <div className="hint-card">
+                  <p className="step-count">Hint</p>
+                  <h3>{guidance.title}</h3>
+                  <p>{guidance.body}</p>
+                </div>
+              ) : null}
             </>
           ) : (
             <>
@@ -179,7 +197,7 @@ export default function CommunitySession({ speechOn, onBack, onDone, onTown }) {
       </div>
       <Phone
         phone={phone}
-        highlight={guidance.complete ? null : guidance.target}
+        highlight={guidance.complete || (practice && !helpOn) ? null : guidance.target}
         alert={alert}
         speechOn={speechOn}
         onToggleSpeech={() => {}}
