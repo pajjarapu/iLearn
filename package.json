@@ -1,26 +1,20 @@
 {
-  "name": "kitchen-line",
+  "name": "techtown",
   "private": true,
-  "workspaces": [
-    "shared",
-    "server",
-    "client"
-  ],
+  "version": "1.0.0",
+  "type": "module",
   "scripts": {
-    "dev": "concurrently -n server,client -c blue,magenta \"npm:dev:server\" \"npm:dev:client\"",
-    "dev:server": "npm run dev -w @kitchen/server",
-    "dev:client": "npm run dev -w @kitchen/client",
-    "seed": "npm run seed -w @kitchen/server",
-    "smoke": "npm run smoke -w @kitchen/server",
-    "typecheck": "npm run typecheck --workspaces --if-present"
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "check": "node scripts/check-logic.mjs"
+  },
+  "dependencies": {
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0"
   },
   "devDependencies": {
-    "concurrently": "^9.2.1"
-  },
-  "engines": {
-    "node": ">=20"
-  },
-  "allowScripts": {
-    "esbuild@0.28.2": true
+    "@vitejs/plugin-react": "^5.0.0",
+    "vite": "^7.1.0"
   }
 }
