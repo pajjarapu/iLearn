@@ -3,6 +3,7 @@ import { reducePhone } from "../logic.js";
 import { createLessonPhone, EXTRA_LESSONS, extraGuidance, matchesExtraStep } from "../extraLessons.js";
 import { silence, speak } from "../speech.js";
 import Phone from "./Phone.jsx";
+import { StepTrail } from "./LearningUI.jsx";
 
 export default function ExtraLessonSession({ lessonId, speechOn, onToggleSpeech, onBack, onDone, onTown }) {
   const lesson = EXTRA_LESSONS[lessonId];
@@ -62,12 +63,13 @@ export default function ExtraLessonSession({ lessonId, speechOn, onToggleSpeech,
           <button className="secondary-btn" onClick={reset}>Start over</button>
           <button className="secondary-btn" onClick={() => speak(spoken)}>Hear this</button>
         </div>
+        <StepTrail step={guidance.step} total={lesson.steps.length} complete={guidance.complete} />
         <p className="mode-kicker">{lesson.title} · Tutorial</p>
         <div className="instruction" aria-live="polite">
           <p className="step-count">{guidance.complete ? "✓ Done" : `Step ${guidance.step} of ${lesson.steps.length}`}</p>
           <h2>{guidance.complete ? "Tutorial complete" : guidance.title}</h2>
           <p>{guidance.complete ? lesson.success : guidance.body}</p>
-          {guidance.complete ? <button className="primary-btn" onClick={onTown}>See your neighborhood</button> : null}
+          {guidance.complete ? <button className="primary-btn" onClick={onTown}>Back to lessons</button> : null}
         </div>
       </div>
       <Phone phone={phone} highlight={guidance.complete ? null : guidance.target} alert={alert} speechOn={speechOn} onToggleSpeech={onToggleSpeech} onDismissAlert={() => setAlert(null)} onAction={dispatch} />

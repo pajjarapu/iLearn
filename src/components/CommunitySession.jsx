@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { createPhone, reducePhone } from "../logic.js";
 import { canSpeak, silence, speak } from "../speech.js";
 import Phone from "./Phone.jsx";
+import { StepTrail } from "./LearningUI.jsx";
 
 const TARGET_DAY = 13;
 const TARGET_REMINDER = "1 day before";
@@ -154,7 +155,8 @@ export default function CommunitySession({ speechOn, onBack, onDone, onTown }) {
           </button>
         </div>
 
-        <p className="mode-kicker">Community Center tutorial</p>
+        <StepTrail step={guidance.step} total={5} complete={guidance.complete} />
+        <p className="mode-kicker">Add a calendar reminder · Tutorial</p>
         <div className="instruction" aria-live="polite">
           {guidance.complete ? (
             <>
@@ -162,7 +164,7 @@ export default function CommunitySession({ speechOn, onBack, onDone, onTown }) {
               <h2>Reminder saved</h2>
               <p>Book club is on October 13. The phone will remind you one day before.</p>
               <div className="success-actions">
-                <button type="button" className="primary-btn" onClick={onTown}>See your neighborhood</button>
+                <button type="button" className="primary-btn" onClick={onTown}>Back to lessons</button>
                 <button type="button" className="secondary-btn" onClick={startOver}>Start over</button>
               </div>
             </>

@@ -97,11 +97,11 @@ export const PLACES = [
     id: "community",
     name: "Community center",
     lessonTitle: "Add a calendar reminder",
-    kicker: "Future lesson",
+    kicker: "Open today",
     summary: "Finding events and adding calendar reminders.",
-    future: true,
+    future: false,
     coming:
-      "At the community center you will practice finding an event and adding a reminder to the calendar. That lesson is not part of today’s visit.",
+      "Find Book club and add a calendar reminder for one day before the event.",
   },
   {
     id: "cafe",

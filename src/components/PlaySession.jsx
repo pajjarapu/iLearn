@@ -14,6 +14,7 @@ import {
 } from "../logic.js";
 import { canSpeak, silence, speak } from "../speech.js";
 import Phone from "./Phone.jsx";
+import { StepTrail } from "./LearningUI.jsx";
 
 const MODE_LABELS = {
   tutorial: "Tutorial",
@@ -208,7 +209,8 @@ export default function PlaySession({
           </button>
         </div>
 
-        <p className="mode-kicker">{MODE_LABELS[mode]}</p>
+        {mode === "tutorial" && <StepTrail step={guidance.step} total={guidance.stepCount || 6} complete={guidance.complete} />}
+        <p className="mode-kicker">Send a photo · {MODE_LABELS[mode]}</p>
         {guidance.complete ? (
           <Success
             mode={mode}
@@ -325,7 +327,7 @@ function Success({ mode, sends, onPractice, onMission, onTown, onReplay }) {
         <>
           <h2>Mission complete</h2>
           <p>You sent Garden flowers to Maya. She can see the blooms by the path.</p>
-          <p>Family house is now unlocked on your map.</p>
+          <p>This lesson is finished. You can revisit it any time.</p>
         </>
       ) : null}
       {mode === "tutorial" ? (
@@ -356,11 +358,8 @@ function Success({ mode, sends, onPractice, onMission, onTown, onReplay }) {
           <button type="button" className="primary-btn" onClick={onMission}>
             Try the mission
           </button>
-        ) : (
-          <button type="button" className="primary-btn" onClick={onTown}>
-            See your neighborhood
-          </button>
-        )}
+        ) : null}
+        <button type="button" className={mode === "game" ? "primary-btn" : "secondary-btn"} onClick={onTown}>Back to lessons</button>
         <button type="button" className="secondary-btn" onClick={onReplay}>
           {mode === "game" ? "Play the mission again" : "Start over"}
         </button>

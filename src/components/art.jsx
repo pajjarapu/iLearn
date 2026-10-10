@@ -185,12 +185,15 @@ export function Avatar({ initials, pattern }) {
 export function PlaceArt({ id, unlocked }) {
   return (
     <svg className="place-art" viewBox="0 0 360 200" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
-      <rect width="360" height="200" fill={id === "cafe" ? "#f6e7d4" : "#e4efe6"} />
-      <path d="M0 168h360v32H0z" fill="#d7c4a4" />
-      {id === "family" ? <FamilyHouse unlocked={unlocked} /> : null}
-      {id === "community" ? <Community /> : null}
-      {id === "cafe" ? <Cafe /> : null}
-      {id === "safety" ? <Safety /> : null}
+      <rect width="360" height="200" fill={{ family: "#e5effc", community: "#fbe9e7", cafe: "#e4f2e8", safety: "#fff2d8" }[id] ?? "#e4efe6"} />
+      <circle cx="180" cy="100" r="71" fill="#fff" opacity="0.7" />
+      <g fill="none" stroke={{ family: "#087aff", community: "#e5493f", cafe: "#24894a", safety: "#9b650d" }[id] ?? "#1f4f45"} strokeWidth="6" strokeLinecap="round" strokeLinejoin="round">
+        {id === "family" ? <><rect x="130" y="55" width="100" height="85" rx="12" /><circle cx="157" cy="80" r="8" /><path d="m140 125 26-28 19 20 16-17 19 25" /><path d="M232 148h24m-10-10 10 10-10 10" /></> : null}
+        {id === "community" ? <><rect x="132" y="57" width="96" height="90" rx="12" /><path d="M155 47v23m50-23v23m-73 12h96" /><path d="M151 102h9m20 0h9m-38 23h9" /><circle cx="218" cy="132" r="25" fill="#fff" /><path d="M218 119v14l9 5" /></> : null}
+        {id === "cafe" ? <><path d="m145 57 17-6 15 28-16 13c8 17 20 29 36 37l13-16 28 15-6 17c-4 11-22 11-45-2-24-14-46-36-55-59-5-13-3-22 13-27Z" /><path d="M203 54c18 2 32 16 34 34m-31-18c8 1 14 7 15 15" /></> : null}
+        {id === "safety" ? <><path d="M135 61h91a12 12 0 0 1 12 12v54a12 12 0 0 1-12 12h-58l-27 19 5-19h-11a12 12 0 0 1-12-12V73a12 12 0 0 1 12-12Z" /><path d="M180 79v29m0 13v1" /></> : null}
+      </g>
+      {unlocked ? <g><circle cx="304" cy="153" r="19" fill="#24894a" /><path d="m295 153 6 6 12-13" fill="none" stroke="#fff" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" /></g> : null}
     </svg>
   );
 }
