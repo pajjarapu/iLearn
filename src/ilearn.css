@@ -111,6 +111,7 @@ body { background: var(--learn-canvas); }
 .learn-back { background: transparent; border: 0; min-height: 44px; padding: 0; margin: 0 0 20px; display: inline-flex; align-items: center; gap: 6px; font-size: 15px; font-weight: 700; }
 .lesson-detail-art { height: 200px; border-radius: var(--learn-radius-lg); overflow: hidden; position: relative; margin-bottom: 24px; }
 .lesson-detail-art .lesson-art { width: 100%; height: 100%; }
+.lesson-detail-art .lesson-art > img { position: absolute; inset: 0; }
 .lesson-detail-art .lesson-art > svg { max-width: 280px; }
 .lesson-detail-art > span { position: absolute; bottom: 14px; left: 14px; display: flex; align-items: center; gap: 8px; background: var(--color-surface); padding: 8px 12px; font-size: 12px; font-weight: 700; border-radius: 99px; }
 .learn-description { color: var(--color-muted); font-size: 16px; line-height: 1.6; margin-bottom: 24px; }

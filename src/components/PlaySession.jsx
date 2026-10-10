@@ -13,7 +13,7 @@ import {
 } from "../logic.js";
 import { canSpeak, silence, speak } from "../speech.js";
 import Phone from "./Phone.jsx";
-import { StepTrail } from "./LearningUI.jsx";
+import { Icon, StepTrail } from "./LearningUI.jsx";
 
 const MODE_LABELS = {
   tutorial: "Tutorial",
@@ -157,24 +157,24 @@ export default function PlaySession({
       <div className="coach">
         <div className="control-row">
           <button type="button" className="secondary-btn" onClick={onBack}>
-            Back
+            <Icon name="back" />Back
           </button>
           {mode === "tutorial" ? (
             <button type="button" className="secondary-btn" onClick={previousStep}>
-              Previous step
+              <Icon name="previous" />Previous step
             </button>
           ) : null}
           {mode === "tutorial" ? (
             <button type="button" className="secondary-btn" onClick={replayStep}>
-              Replay step
+              <Icon name="replay" />Replay step
             </button>
           ) : null}
           <button type="button" className="secondary-btn" onClick={startOver}>
-            {mode === "tutorial" ? "Start over" : "Replay"}
+            <Icon name="restart" />{mode === "tutorial" ? "Start over" : "Replay"}
           </button>
           {mode !== "tutorial" ? (
             <button type="button" className="secondary-btn" onClick={askHelp}>
-              Help me
+              <Icon name="help" />Help me
             </button>
           ) : null}
           <button
@@ -188,7 +188,7 @@ export default function PlaySession({
               speak(spoken);
             }}
           >
-            Hear this
+            <Icon name="volume" />Hear this
           </button>
         </div>
 
@@ -315,7 +315,7 @@ function Success({ mode, sends, onPractice, onTown, onReplay }) {
         ) : null}
         <button type="button" className={mode === "practice" ? "primary-btn" : "secondary-btn"} onClick={onTown}>Back to lessons</button>
         <button type="button" className="secondary-btn" onClick={onReplay}>
-          Start over
+          <Icon name="restart" />Start over
         </button>
       </div>
     </div>

@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { createPhone, reducePhone } from "../logic.js";
 import { canSpeak, silence, speak } from "../speech.js";
 import Phone from "./Phone.jsx";
-import { StepTrail } from "./LearningUI.jsx";
+import { Icon, StepTrail } from "./LearningUI.jsx";
 
 const TARGET_DAY = 13;
 const TARGET_REMINDER = "1 day before";
@@ -146,9 +146,9 @@ export default function CommunitySession({ mode = "tutorial", speechOn, onBack, 
     <section className="play">
       <div className="coach">
         <div className="control-row">
-          <button type="button" className="secondary-btn" onClick={onBack}>Back</button>
-          <button type="button" className="secondary-btn" onClick={startOver}>Start over</button>
-          {practice ? <button type="button" className="secondary-btn" onClick={() => setHelpOn(true)}>Help me</button> : null}
+          <button type="button" className="secondary-btn" onClick={onBack}><Icon name="back" />Back</button>
+          <button type="button" className="secondary-btn" onClick={startOver}><Icon name="restart" />Start over</button>
+          {practice ? <button type="button" className="secondary-btn" onClick={() => setHelpOn(true)}><Icon name="help" />Help me</button> : null}
           <button
             type="button"
             className="secondary-btn"
@@ -156,7 +156,7 @@ export default function CommunitySession({ mode = "tutorial", speechOn, onBack, 
               if (canSpeak()) speak(spoken);
             }}
           >
-            Hear this
+            <Icon name="volume" />Hear this
           </button>
         </div>
 
@@ -171,7 +171,7 @@ export default function CommunitySession({ mode = "tutorial", speechOn, onBack, 
               <div className="success-actions">
                 {practice ? null : <button type="button" className="primary-btn" onClick={onPractice}>Try guided practice</button>}
                 <button type="button" className={practice ? "primary-btn" : "secondary-btn"} onClick={onTown}>Back to lessons</button>
-                <button type="button" className="secondary-btn" onClick={startOver}>Start over</button>
+                <button type="button" className="secondary-btn" onClick={startOver}><Icon name="restart" />Start over</button>
               </div>
             </>
           ) : practice ? (

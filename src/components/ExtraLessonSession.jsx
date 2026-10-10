@@ -3,7 +3,7 @@ import { reducePhone } from "../logic.js";
 import { createLessonPhone, EXTRA_LESSONS, extraGuidance, matchesExtraStep } from "../extraLessons.js";
 import { silence, speak } from "../speech.js";
 import Phone from "./Phone.jsx";
-import { StepTrail } from "./LearningUI.jsx";
+import { Icon, StepTrail } from "./LearningUI.jsx";
 
 export default function ExtraLessonSession({ lessonId, mode = "tutorial", speechOn, onToggleSpeech, onBack, onDone, onPractice, onTown }) {
   const lesson = EXTRA_LESSONS[lessonId];
@@ -62,15 +62,15 @@ export default function ExtraLessonSession({ lessonId, mode = "tutorial", speech
     <section className="play">
       <div className="coach">
         <div className="control-row">
-          <button className="secondary-btn" onClick={onBack}>Back</button>
+          <button className="secondary-btn" onClick={onBack}><Icon name="back" />Back</button>
           {practice ? null : <button className="secondary-btn" disabled={!history.length} onClick={() => {
             setPhone(history[history.length - 1]);
             setHistory(history.slice(0, -1));
             setAlert(null);
-          }}>Previous step</button>}
-          <button className="secondary-btn" onClick={reset}>Start over</button>
-          {practice ? <button className="secondary-btn" onClick={() => setHelpOn(true)}>Help me</button> : null}
-          <button className="secondary-btn" onClick={() => speak(spoken)}>Hear this</button>
+          }}><Icon name="previous" />Previous step</button>}
+          <button className="secondary-btn" onClick={reset}><Icon name="restart" />Start over</button>
+          {practice ? <button className="secondary-btn" onClick={() => setHelpOn(true)}><Icon name="help" />Help me</button> : null}
+          <button className="secondary-btn" onClick={() => speak(spoken)}><Icon name="volume" />Hear this</button>
         </div>
         {practice ? null : <StepTrail step={guidance.step} total={lesson.steps.length} complete={guidance.complete} />}
         <p className="mode-kicker">{lesson.title} · {practice ? "Guided practice" : "Tutorial"}</p>

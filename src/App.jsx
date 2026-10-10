@@ -21,7 +21,6 @@ export default function App() {
   const [offline, setOffline] = useState(() => !navigator.onLine);
   const [filter, setFilter] = useState("All");
   const [query, setQuery] = useState("");
-  const [searchOpen, setSearchOpen] = useState(false);
   const headingRef = useRef(null);
   const playing = ["play", "community-play", "extra-play"].includes(view.name);
   const currentLesson = LESSONS.find((lesson) => lesson.id === view.lessonId);
@@ -69,7 +68,6 @@ export default function App() {
       <div className="learn-shell">
         <header className="learn-header">{playing ? <><button className="learn-back" onClick={() => openLesson(view.lessonId)}><Icon name="back" />Lessons</button><strong className="walkthrough-title">{currentLesson?.title}</strong></> : <Brand />}<div className="header-actions">
           <button className="learn-icon-button" aria-label={`Switch to ${theme === "light" ? "dark" : "light"} theme`} onClick={() => setTheme(theme === "light" ? "dark" : "light")}><Icon name={theme === "light" ? "moon" : "sun"} /></button>
-          {view.name === "lessons" && <button className="learn-icon-button" aria-label="Search lessons" aria-expanded={searchOpen} onClick={() => setSearchOpen(!searchOpen)}><Icon name="search" /></button>}
           {playing && <button className="learn-icon-button" aria-label={`Spoken instructions ${progress.speech ? "on" : "off"}`} aria-pressed={progress.speech} onClick={toggleSpeech}><Icon name="volume" /></button>}
         </div></header>
         {offline && <p className="learn-notice" role="status">You're offline. All practice lessons still work.</p>}
@@ -77,7 +75,7 @@ export default function App() {
         <main id="main" className="learn-main">
           {view.name === "lessons" && <>
             <p className="learn-overline">Ready to learn,</p><h1 className="learn-heading" ref={headingRef} tabIndex={-1}>Your lessons</h1>
-            {searchOpen && <label className="learn-search"><Icon name="search" /><span className="sr-only">Search lessons</span><input autoFocus value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Find a lesson…" type="search" /></label>}
+            <label className="learn-search"><Icon name="search" /><span className="sr-only">Search lessons</span><input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Find a lesson…" type="search" /></label>
             <div className="lesson-banner"><Asset name="s0-lessons-hero" /><div><h2>Take it slow</h2><p>Every lesson breaks a task into small, clear steps.</p></div></div>
             <div className="learn-filters" aria-label="Filter lessons">{["All", "iPhone basics", "Apps", "Calls & messages"].map((item) => <button key={item} aria-pressed={filter === item} className={filter === item ? "selected" : ""} onClick={() => setFilter(item)}>{item}</button>)}</div>
             <div className="lesson-feed">{filtered.map((lesson) => <LessonCard key={lesson.id} lesson={lesson} finished={lessonFinished(lesson, progress)} onOpen={() => openLesson(lesson.id)} />)}</div>

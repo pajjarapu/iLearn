@@ -1,6 +1,7 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { CALENDAR, CONTACTS, PHOTOS, contactById, photoById } from "../logic.js";
 import { Avatar, PhotoArt } from "./art.jsx";
+import { PHONE_ICONS } from "../sfIcons.js";
 
 const APPS = [
   { id: "messages", label: "Messages", icon: "bubble", blurb: "Texts" },
@@ -322,6 +323,7 @@ function ThreadScreen({ phone, highlight, onAction }) {
   const draftPhoto = photoById(draft.photoId);
   const endRef = useRef(null);
   const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef(null);
   const lastOutgoing = [...messages].reverse().find((message) => message.from === "me");
   const sendReady = Boolean(draft.text.trim() || draftPhoto);
 
@@ -335,6 +337,21 @@ function ThreadScreen({ phone, highlight, onAction }) {
     if (!scroller) return;
     scroller.scrollTop = scroller.scrollHeight;
   }, [messages.length, phone.screen]);
+
+  // Fit the attachment menu inside the phone screen so every option can be scrolled to, then bring Photos into view.
+  useLayoutEffect(() => {
+    const menu = menuRef.current;
+    if (!menuOpen || !menu) return;
+    const screen = menu.closest(".phone-screen");
+    const header = screen?.querySelector(".conversation-header");
+    const topLimit = (header ?? screen)?.getBoundingClientRect()[header ? "bottom" : "top"] ?? 0;
+    const menuBottom = menu.getBoundingClientRect().bottom;
+    menu.style.maxHeight = `${Math.max(140, menuBottom - topLimit - 8)}px`;
+    const photos = menu.querySelector(".attachment-option.photos-option");
+    if (photos && photos.offsetTop + photos.offsetHeight > menu.clientHeight) {
+      menu.scrollTop = photos.offsetTop - 28;
+    }
+  }, [menuOpen]);
 
   if (!contact) return null;
 
@@ -392,7 +409,7 @@ function ThreadScreen({ phone, highlight, onAction }) {
             +
           </Tap>
           {menuOpen ? (
-            <div className="attachment-menu" role="menu" aria-label="Attachment options">
+            <div ref={menuRef} className="attachment-menu" role="menu" aria-label="Attachment options">
               {[
                 { label: "Camera", icon: "◉", style: "camera" },
                 { label: "Photos", icon: "✿", style: "photos", active: true },
@@ -405,7 +422,7 @@ function ThreadScreen({ phone, highlight, onAction }) {
                 <button
                   key={option.label}
                   type="button"
-                  className={`attachment-option ${option.active && highlight === "attach" ? "is-next attachment-photos-target" : ""}`.trim()}
+                  className={`attachment-option ${option.active ? "photos-option" : ""} ${option.active && highlight === "attach" ? "is-next attachment-photos-target" : ""}`.trim()}
                   role="menuitem"
                   onClick={() => {
                     setMenuOpen(false);
@@ -685,18 +702,7 @@ function CallContactScreen({ phone, highlight, onAction }) {
 }
 
 function PhoneControlIcon({ name }) {
-  const paths = {
-    phone: "M6 3h4l2 5-3 2a15 15 0 0 0 5 5l2-3 5 2v4c-9 3-19-7-15-15Z",
-    hangup: "M3 15v-4c5-5 13-5 18 0v4h-5v-4a13 13 0 0 0-8 0v4Z",
-    mic: "M9 4a3 3 0 0 1 6 0v8a3 3 0 0 1-6 0ZM6 10v2a6 6 0 0 0 12 0v-2M12 18v4M8 22h8",
-    speaker: "M3 9h4l6-5v16l-6-5H3ZM17 8a6 6 0 0 1 0 8M20 5a10 10 0 0 1 0 14",
-    plus: "M12 3v18M3 12h18",
-    video: "M3 6h12v12H3ZM15 10l6-4v12l-6-4",
-    person: "M8 7a4 4 0 1 0 8 0 4 4 0 0 0-8 0ZM4 21v-3c0-6 16-6 16 0v3",
-    message: "M3 4h18v13H9l-6 4Z",
-    mail: "M3 5h18v14H3ZM3 5l9 8 9-8",
-  };
-  return <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">{name === "keypad" ? [5,12,19].flatMap(x => [5,12,19].map(y => <circle key={`${x}-${y}`} cx={x} cy={y} r="1.5" fill="currentColor" />)) : <path d={paths[name]} />}</svg>;
+  return <svg viewBox="0 0 56 56" aria-hidden="true" fill="currentColor"><path d={PHONE_ICONS[name]} /></svg>;
 }
 
 function CameraScreen({ highlight, onAction }) {
