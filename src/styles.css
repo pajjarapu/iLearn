@@ -1170,7 +1170,6 @@ a { color: var(--pine-deep); }
 
 .attachment-option.attachment-photos-target {
   outline: 0;
-  padding-bottom: 1.8rem;
   background: rgba(10, 132, 255, 0.18);
   box-shadow: inset 0 0 0 3px #0a84ff;
 }
@@ -1178,7 +1177,8 @@ a { color: var(--pine-deep); }
 .attachment-tap-pill {
   position: absolute;
   left: 50%;
-  bottom: 0.35rem;
+  bottom: calc(100% + 0.35rem);
+  z-index: 6;
   transform: translateX(-50%);
   padding: 0.22rem 0.5rem;
   border-radius: 999px;
@@ -1652,8 +1652,9 @@ a { color: var(--pine-deep); }
 .is-next {
   position: relative;
   z-index: 1;
-  outline: 2px solid #fff;
-  box-shadow: 0 0 0 4px var(--ios-blue), 0 5px 16px rgba(10, 132, 255, 0.24);
+  outline: 3px solid var(--ios-blue) !important;
+  outline-offset: 2px;
+  box-shadow: 0 0 0 2px #fff, 0 5px 16px rgba(10, 132, 255, 0.3) !important;
   animation: focus-glow 1.8s ease-in-out infinite;
 }
 
@@ -1666,8 +1667,11 @@ a { color: var(--pine-deep); }
 
 .next-pill {
   position: absolute;
-  top: -1.65rem;
-  left: 0;
+  top: auto;
+  bottom: calc(100% + 0.35rem);
+  left: 50%;
+  z-index: 8;
+  transform: translateX(-50%);
   background: var(--ios-blue);
   color: white;
   border-radius: 999px;
@@ -1677,30 +1681,18 @@ a { color: var(--pine-deep); }
   white-space: nowrap;
 }
 
-.composer:has(.send-btn.is-next)::after {
-  content: "Tap here";
-  position: absolute;
-  left: auto;
-  right: 1.25rem;
-  top: 0.15rem;
-  z-index: 4;
-  transform: translateX(50%);
-  padding: 0.1rem 0.28rem;
-  border-radius: 999px;
-  background: var(--ios-blue);
-  color: white;
-  font-size: 0.56rem;
-  font-weight: 700;
-  line-height: 1.2;
-  white-space: nowrap;
-}
-
 .send-btn.is-next .next-pill {
-  display: none;
+  padding-inline: 0.28rem;
+  font-size: 0.56rem;
 }
 
 @keyframes focus-glow {
-  50% { box-shadow: 0 0 0 5px var(--ios-blue), 0 5px 18px rgba(10, 132, 255, 0.3); }
+  0%, 100% {
+    filter: drop-shadow(0 0 0 rgba(10, 132, 255, 0));
+  }
+  50% {
+    filter: drop-shadow(0 0 8px rgba(10, 132, 255, 0.9));
+  }
 }
 
 /* iPhone interface */
@@ -2017,6 +2009,7 @@ html {
 }
 
 .screen-home .app-calendar .app-icon {
+  padding: 0.22rem;
   color: #ff3b30;
   background: white;
 }
@@ -2425,27 +2418,476 @@ html {
   line-height: 1.1;
 }
 
-.calendar-grid {
-  gap: 0.35rem 0.1rem;
+/* iPhone Calendar */
+.screen-calendar .phone-body,
+.screen-day .phone-body {
+  padding: 0 0.72rem 0.2rem;
+  background: #fff;
 }
 
-.day-btn {
-  min-height: 2.6rem;
+.screen-reminder .phone-body {
+  padding: 0 0.72rem 1rem;
+  background: #f2f2f7;
+}
+
+.ios-calendar {
+  min-height: 100%;
+  color: #000;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif;
+}
+
+.ios-calendar-header,
+.ios-reminder-nav {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  min-height: 2.65rem;
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+}
+
+.ios-calendar-header {
+  grid-template-columns: 1fr auto;
+}
+
+.ios-calendar-year,
+.ios-nav-action,
+.ios-calendar-add,
+.ios-calendar-tools button,
+.ios-calendar-tabs button {
+  min-width: 2.4rem;
+  min-height: 2.4rem;
+  padding: 0.25rem;
+  border: 0;
+  background: transparent;
+  color: #ff3b30;
+  font: inherit;
+  font-weight: 500;
+}
+
+.ios-calendar-year {
+  justify-self: start;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.08rem;
+  font-size: 0.95rem;
+}
+
+.ios-calendar-year > span:not(.next-pill) {
+  margin-top: -0.08rem;
+  font-size: 1.8rem;
+  font-weight: 300;
+  line-height: 0.8;
+}
+
+.ios-calendar-year .next-pill,
+.ios-nav-action .next-pill {
+  top: auto;
+  bottom: calc(100% + 0.35rem);
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.ios-calendar-header:has(.is-next),
+.ios-reminder-nav:has(.is-next) {
+  margin-top: 1.75rem;
+}
+
+.ios-calendar-tools {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.12rem;
+}
+
+.ios-calendar-tools button,
+.ios-calendar-add {
+  font-size: 1.45rem;
+  font-weight: 400;
+  line-height: 1;
+}
+
+.ios-calendar-month {
+  margin: 0.05rem 0 0.65rem;
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1.05;
+  letter-spacing: -0.035em;
+}
+
+.ios-calendar .weekdays {
+  margin: 0 0 0.3rem;
+  color: #8e8e93;
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.025em;
+  text-transform: uppercase;
+}
+
+.ios-calendar .calendar-grid {
+  gap: 0.16rem 0.05rem;
+  padding-bottom: 0.7rem;
+  border-bottom: 0.5px solid rgba(60, 60, 67, 0.2);
+}
+
+.ios-calendar .day-btn {
+  position: relative;
+  min-width: 0;
+  min-height: 2.35rem;
+  padding: 0;
   border: 0;
   border-radius: 50%;
   background: transparent;
+  color: #000;
   box-shadow: none;
+  font-size: 0.82rem;
+  font-weight: 400;
 }
 
-.day-btn:has(.day-tag) {
+.ios-calendar .day-btn.is-today {
   color: white;
   background: #ff3b30;
 }
 
-.day-tag {
-  font-size: 0.5rem;
-  letter-spacing: 0;
-  text-transform: none;
+.ios-calendar .day-num {
+  font-weight: 500;
+}
+
+.calendar-event-dot {
+  position: absolute;
+  left: 50%;
+  bottom: 0.18rem;
+  width: 0.22rem;
+  height: 0.22rem;
+  border-radius: 50%;
+  background: #ff3b30;
+  transform: translateX(-50%);
+}
+
+.day-btn.is-today .calendar-event-dot {
+  background: white;
+}
+
+.ios-events-title {
+  margin: 0.85rem 0 0.4rem;
+  font-size: 1.25rem;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+}
+
+.ios-event-list {
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  list-style: none;
+  border-radius: 0.75rem;
+  background: #fff;
+}
+
+.ios-event-row {
+  position: relative;
+  display: grid;
+  grid-template-columns: 0.22rem 2.4rem 1fr auto;
+  align-items: center;
+  gap: 0.55rem;
+  width: 100%;
+  min-height: 3.7rem;
+  padding: 0.45rem 0.2rem;
+  border: 0;
+  border-bottom: 0.5px solid rgba(60, 60, 67, 0.2);
+  border-radius: 0;
+  background: #fff;
+  color: #000;
+  text-align: left;
+  box-shadow: none;
+}
+
+.ios-event-color {
+  align-self: stretch;
+  width: 0.22rem;
+  min-height: 2.15rem;
+  border-radius: 999px;
+  background: #ff3b30;
+}
+
+.ios-event-date {
+  display: grid;
+  place-items: center;
+  color: #ff3b30;
+  line-height: 1;
+}
+
+.ios-event-date strong {
+  font-size: 0.55rem;
+  letter-spacing: 0.04em;
+}
+
+.ios-event-date span {
+  margin-top: 0.12rem;
+  font-size: 1.1rem;
+  font-weight: 500;
+}
+
+.ios-event-row .person-copy {
+  min-width: 0;
+}
+
+.ios-event-row .person-name {
+  font-size: 0.92rem;
+  font-weight: 600;
+}
+
+.ios-event-row .person-relation {
+  margin-top: 0.16rem;
+  overflow: hidden;
+  color: #636366;
+  font-size: 0.7rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ios-row-chevron {
+  color: #c7c7cc;
+  font-size: 1.35rem;
+  font-weight: 300;
+}
+
+.ios-calendar-tabs {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  margin: 1rem -0.72rem 0;
+  padding: 0.25rem 0.4rem calc(0.2rem + env(safe-area-inset-bottom, 0px));
+  border-top: 0.5px solid rgba(60, 60, 67, 0.18);
+  background: rgba(249, 249, 249, 0.9);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+}
+
+.ios-calendar-tabs button {
+  font-size: 0.7rem;
+}
+
+.ios-day-header {
+  grid-template-columns: 1fr auto 1fr;
+  margin-bottom: 0.25rem;
+  border-bottom: 0.5px solid rgba(60, 60, 67, 0.16);
+}
+
+.ios-day-header > strong {
+  font-size: 0.72rem;
+}
+
+.ios-calendar-add {
+  justify-self: end;
+}
+
+.ios-day-number {
+  display: grid;
+  justify-items: center;
+  margin: 0.35rem 0 0.75rem;
+  color: #ff3b30;
+  line-height: 1;
+}
+
+.ios-day-number span {
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.ios-day-number strong {
+  margin-top: 0.15rem;
+  font-size: 2rem;
+  font-weight: 400;
+}
+
+.ios-event-detail {
+  position: relative;
+  display: grid;
+  grid-template-columns: 0.22rem 1fr;
+  gap: 0 0.65rem;
+  padding: 0.85rem;
+  border-radius: 0.85rem;
+  background: #fff;
+  box-shadow: 0 1px 8px rgba(0, 0, 0, 0.07);
+}
+
+.ios-event-detail h2 {
+  margin: 0 0 0.2rem;
+  font-size: 1.15rem;
+  letter-spacing: -0.015em;
+}
+
+.ios-event-detail p {
+  margin: 0.1rem 0;
+  color: #636366;
+  font-size: 0.8rem;
+  line-height: 1.35;
+}
+
+.ios-event-detail .ios-event-notes,
+.ios-event-detail .calendar-reminder-saved,
+.ios-event-detail .calendar-reminder-button {
+  grid-column: 2;
+}
+
+.ios-event-detail .ios-event-notes {
+  margin-top: 0.85rem;
+  padding-top: 0.75rem;
+  border-top: 0.5px solid rgba(60, 60, 67, 0.18);
+}
+
+.ios-event-detail .calendar-reminder-saved {
+  width: auto;
+  margin-top: 0.7rem;
+  padding: 0.55rem 0;
+  border-radius: 0;
+  background: transparent;
+  color: #000;
+}
+
+.ios-event-detail .calendar-reminder-button {
+  position: relative;
+  width: 100%;
+  min-height: 2.65rem;
+  margin-top: 0.75rem;
+  padding: 0.4rem 0;
+  border: 0;
+  border-top: 0.5px solid rgba(60, 60, 67, 0.18);
+  border-radius: 0;
+  background: transparent;
+  color: #007aff;
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 500;
+  text-align: left;
+}
+
+.ios-empty-day {
+  margin: 3rem 0;
+  color: #8e8e93;
+  text-align: center;
+}
+
+.ios-reminder-nav {
+  margin: 0 -0.72rem;
+  padding: 0 0.45rem;
+  border-bottom: 0.5px solid rgba(60, 60, 67, 0.2);
+}
+
+.ios-reminder-nav h1 {
+  margin: 0;
+  font-size: 1rem;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+}
+
+.ios-nav-action {
+  justify-self: start;
+  font-size: 0.9rem;
+}
+
+.ios-nav-done {
+  justify-self: end;
+  font-weight: 600;
+}
+
+.ios-nav-action:disabled {
+  color: #b8b8bd;
+}
+
+.ios-reminder-label {
+  margin: 1.1rem 0.75rem 0.35rem;
+  color: #6e6e73;
+  font-size: 0.65rem;
+  letter-spacing: 0.025em;
+}
+
+.ios-reminder-options {
+  border-radius: 0.75rem;
+}
+
+.ios-reminder-options .settings-row {
+  position: relative;
+  min-height: 2.8rem;
+  padding: 0.55rem 0.8rem;
+  font-size: 0.9rem;
+}
+
+.ios-reminder-options .settings-row > span:last-child {
+  color: #007aff;
+  font-weight: 700;
+}
+
+.ios-reminder-help {
+  margin: 0.45rem 0.75rem;
+  color: #6e6e73;
+  font-size: 0.68rem;
+  line-height: 1.35;
+}
+
+.ios-calendar .is-next {
+  outline: 3px solid #0a84ff !important;
+  outline-offset: 2px;
+  box-shadow: 0 0 0 2px #fff, 0 5px 16px rgba(10, 132, 255, 0.3) !important;
+}
+
+.screen-home .app-btn.is-next {
+  outline: 0 !important;
+  box-shadow: none !important;
+  animation: none;
+}
+
+.screen-home .app-btn.is-next .app-icon {
+  outline: 3px solid #0a84ff;
+  outline-offset: 3px;
+  box-shadow:
+    0 0 0 2px #fff,
+    0 5px 16px rgba(10, 132, 255, 0.34);
+  animation: app-icon-focus-glow 1.8s ease-in-out infinite;
+}
+
+@keyframes app-icon-focus-glow {
+  0%, 100% {
+    filter: drop-shadow(0 0 0 rgba(10, 132, 255, 0));
+  }
+  50% {
+    filter: drop-shadow(0 0 8px rgba(10, 132, 255, 0.9));
+  }
+}
+
+.ios-event-list,
+.ios-reminder-options {
+  overflow: visible;
+}
+
+.ios-event-row.is-next,
+.ios-reminder-options .settings-row.is-next {
+  outline: 0 !important;
+  border-radius: 0.65rem;
+  box-shadow:
+    inset 0 0 0 3px #0a84ff,
+    0 0 0 2px #fff,
+    0 5px 16px rgba(10, 132, 255, 0.24) !important;
+}
+
+.screen-calendar .phone-body > *,
+.screen-day .phone-body > *,
+.screen-reminder .phone-body > * {
+  animation: calendar-view-enter 180ms ease-out both;
+}
+
+@keyframes calendar-view-enter {
+  from { opacity: 0; transform: translateX(0.35rem); }
+  to { opacity: 1; transform: translateX(0); }
 }
 
 .preview-sheet {
@@ -2614,6 +3056,7 @@ button:not(:disabled):active {
 
 @media (prefers-reduced-motion: reduce) {
   .is-next { animation: none; }
+  .screen-home .app-btn.is-next .app-icon { animation: none; }
   button:not(:disabled) { transition: none; }
   .phone-body > *,
   .photo-picker,
@@ -2625,6 +3068,238 @@ button:not(:disabled):active {
   }
 }
 
+.call-contact-card { display: grid; justify-items: center; gap: 0.7rem; padding: 1.5rem 0.7rem; text-align: center; }
+.call-contact-card h2 { margin: 0; font-size: 1.5rem; }
+.call-contact-card p { margin: 0; color: #8e8e93; }
+.practice-start-call { position: relative; min-height: 3rem; margin: 1.6rem 0 0.6rem; padding: 0.6rem 1.6rem; border: 0; border-radius: 0.8rem; background: #34c759; color: white; font-size: 1rem; }
+.call-contact-card .call-disclaimer { font-size: 0.75rem; }
+.screen-calling .phone-body { color: white; background: linear-gradient(155deg, #243b36, #152129); }
+.practice-call-screen { display: flex; flex-direction: column; align-items: center; min-height: 100%; padding: 2rem 0.7rem 1.5rem; text-align: center; }
+.practice-call-screen h3 { margin-bottom: 0.5rem; color: white; font-size: 1.5rem; }
+.practice-call-screen p { color: #c1ceca; font-size: 0.85rem; }
+.practice-hang-up { position: relative; display: grid; place-items: center; flex: none; width: 4rem; height: 4rem; margin-top: auto; border: 0; border-radius: 50%; background: #ff3b30; color: white; font-size: 2rem; }
+
+.ios-phone-contacts { display: flex; flex-direction: column; min-height: 100%; }
+.ios-contact-navigation { display: flex; justify-content: space-between; width: 100%; min-height: 2.6rem; align-items: center; }
+.ios-contact-navigation button { border: 0; padding: 0.4rem 0; background: transparent; color: #007aff; font-size: 0.95rem; }
+.ios-phone-contacts > h2 { margin: 0.3rem 0 0.65rem; font-size: 1.85rem; letter-spacing: -0.035em; }
+.ios-contact-section { margin: 0.8rem 0 1.7rem; color: #8e8e93; font-size: 0.65rem; }
+.ios-phone-contacts .people { overflow: visible; }
+.ios-phone-contacts .person { min-height: 3.1rem; padding-inline: 0.3rem; }
+.ios-phone-contacts .person.is-next { box-shadow: inset 0 0 0 3px #0a84ff !important; outline: 0 !important; border-radius: 0.5rem; }
+.ios-phone-tabs { display: grid; grid-template-columns: repeat(5, 1fr); position: sticky; bottom: 0; margin-top: auto; padding-top: 1rem; background: #fff; }
+.ios-phone-tabs button { display: grid; gap: 0.2rem; padding: 0.45rem 0; border: 0; background: #fafafa; color: #8e8e93; font-size: 0.5rem; }
+.ios-phone-tabs button > span { font-size: 1.3rem; }
+.ios-phone-tabs button.selected { color: #007aff; }
+.screen-call-contact .phone-body { background: #f2f2f7; }
+.call-contact-card { padding-top: 0; gap: 0.55rem; }
+.call-contact-card > .avatar { width: 5rem; height: 5rem; margin-top: 0.6rem; font-size: 1.8rem; }
+.ios-contact-actions { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0.5rem; width: 100%; margin: 1.7rem 0 0.8rem; }
+.ios-contact-actions button { display: grid; justify-items: center; gap: 0.35rem; min-height: 3.2rem; margin: 0; padding: 0.5rem 0.2rem; border: 0; border-radius: 0.7rem; background: #fff; color: #007aff; font-size: 0.65rem; }
+.ios-contact-actions svg { width: 1.25rem; height: 1.25rem; }
+.ios-contact-actions .practice-start-call { background: #34c759; color: white; }
+.ios-contact-information { display: grid; gap: 0.3rem; width: 100%; padding: 0.75rem; border-radius: 0.6rem; background: white; text-align: left; font-size: 0.8rem; }
+.ios-contact-information strong { color: #007aff; font-weight: 400; }
+.call-contact-card .ios-contact-information p { color: #1c1c1e; font-size: 0.8rem; }
+.screen-calling { background: linear-gradient(155deg, #3a514c, #152129); }
+.screen-calling .status-bar, .screen-calling .phone-body, .screen-calling .home-indicator { color: white; background: transparent; }
+.screen-calling .home-indicator span { background: white; }
+.practice-call-screen { padding-top: 1.2rem; }
+.practice-call-screen > .avatar { width: 4.5rem; height: 4.5rem; font-size: 1.6rem; }
+.practice-call-screen h3 { margin: 0.8rem 0 0.2rem; font-weight: 400; }
+.practice-call-screen .ios-call-status { margin: 0; font-size: 1rem; color: #c9d2d0; }
+.ios-call-controls { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.2rem 1rem; margin: auto 0; padding: 1.5rem 0; width: 100%; }
+.ios-call-controls button { display: grid; justify-items: center; gap: 0.35rem; padding: 0; border: 0; background: transparent; color: white; font-size: 0.75rem; }
+.ios-call-controls button > span { display: grid; place-items: center; width: 3.5rem; height: 3.5rem; border-radius: 50%; background: #ffffff25; }
+.ios-call-controls svg { width: 1.5rem; height: 1.5rem; }
+.practice-hang-up { margin-top: 1.7rem; }
+.practice-hang-up svg { width: 1.9rem; height: 1.9rem; fill: currentColor; }
+.safety-inbox .messages-header h2 { font-size: 1.8rem; }
+.safety-inbox-time { color: #8e8e93; font-size: 0.6rem; white-space: nowrap; }
+.unknown-avatar svg { width: 1.65rem; height: 1.65rem; }
+.safety-message-screen { display: flex; flex-direction: column; min-height: 100%; }
+.safety-message-header { position: relative; background: #fafafa; margin: -0.2rem -0.75rem 0; padding: 0.6rem; }
+.safety-back { position: absolute; left: 0.7rem; top: 0.8rem; border: 0; background: transparent; color: #007aff; font-size: 2rem; line-height: 1; }
+.safety-message-bubble { position: relative; align-self: flex-start; }
+.safety-message-bubble::before { content: ""; position: absolute; bottom: 0; left: -0.25rem; width: 0.8rem; height: 0.8rem; border-radius: 0 0 1rem; background: #e9e9eb; }
+.safety-review { width: auto; align-self: center; padding: 0.55rem 0.8rem; background: #f2f2f7; color: #007aff; }
+.safety-composer { display: flex; gap: 0.7rem; margin-top: auto; padding-top: 1.5rem; }
+.safety-composer > button { min-height: 2.4rem; border: 0; background: transparent; color: #8e8e93; font-size: 1.7rem; }
+.safety-composer .safety-message-input { display: flex; justify-content: space-between; flex: 1; padding: 0.4rem 0.7rem; border: 1px solid #c7c7cc; border-radius: 2rem; font-size: 0.95rem; text-align: left; }
+.screen-safety-report .phone-body { padding: 0; }
+.safety-report-screen { position: relative; display: block; flex: 1; min-height: 100%; padding: 0; }
+.safety-report-background { position: absolute; inset: 0; padding: 0.2rem 0.75rem; overflow: hidden; }
+.ios-report-scrim { position: absolute; inset: 0; background: #0005; }
+.ios-report-sheet { position: absolute; bottom: 0.6rem; left: 0.5rem; right: 0.5rem; display: grid; gap: 0.5rem; }
+.ios-report-group { border-radius: 0.8rem; background: #f9f9f9f5; }
+.ios-report-description { padding: 0.85rem 1rem 1.5rem; color: #6e6e73; }
+.ios-report-description h2 { font-size: 0.8rem; font-weight: 600; }
+.ios-report-description p { margin: 0.4rem 0; font-size: 0.75rem; }
+.ios-report-group .safety-report-confirm { margin: 0; min-height: 3rem; border-top: 1px solid #c7c7cc; border-radius: 0 0 0.8rem 0.8rem; background: transparent; font-size: 1rem; }
+.ios-report-cancel { min-height: 3rem; border: 0; border-radius: 0.8rem; color: #007aff; background: white; font-size: 1rem; font-weight: 600; }
+
+/* Contacts and contact poster matched to the supplied iPhone references. */
+.screen-phone { background: #000; color: white; }
+.screen-phone .phone-body, .screen-phone .status-bar, .screen-phone .home-indicator { background: #000; color: white; }
+.screen-phone .home-indicator span { background: #fff; }
+.reference-contacts { padding: 0 0.1rem; }
+.reference-contacts-header { display: grid; grid-template-columns: 2.6rem 1fr 2.6rem; align-items: center; margin: 0.4rem 0 1rem; }
+.reference-contacts-header h2 { margin: 0; text-align: center; font-family: inherit; font-size: 1rem; font-weight: 600; }
+.reference-contacts-header button { display: grid; place-items: center; width: 2.6rem; height: 2.6rem; padding: 0; border: 1px solid #292929; border-radius: 50%; color: white; background: #141414; font-size: 2rem; line-height: 1; }
+.reference-my-card { display: flex; align-items: center; gap: 0.6rem; padding: 0.2rem 0 0.8rem; border: 0; background: transparent; color: white; text-align: left; }
+.reference-my-card strong { display: block; font-size: 0.95rem; font-weight: 600; }
+.reference-my-card small { display: block; margin-top: 0.2rem; color: #98989f; font-size: 0.9rem; }
+.reference-avatar { display: grid; place-items: center; flex: none; width: 2.5rem; height: 2.5rem; border-radius: 50%; background: linear-gradient(#514b63, #322947); color: white; font-size: 1.05rem; font-weight: 600; }
+.my-card-avatar { background: linear-gradient(#cdbca6, #edaf26); }
+.reference-contacts .people { margin: 0; padding-right: 0.6rem; border-radius: 0; background: #000; }
+.reference-letter { padding: 0.6rem 0; border-bottom: 1px solid #282828; color: #98989f; font-size: 0.85rem; }
+.reference-contacts .person { position: relative; gap: 0.65rem; min-height: 3.6rem; padding: 0.6rem 0; border: 0; color: white; background: #000; }
+.reference-contacts .person::after { content: ""; position: absolute; bottom: 0; left: 3.15rem; right: 0; height: 1px; background: #282828; }
+.reference-contacts .person-name { color: white; font-size: 1rem; font-weight: 500; }
+.reference-alphabet { position: absolute; right: 0.05rem; top: 9rem; z-index: 3; display: grid; }
+.reference-alphabet button { min-height: 0; padding: 0.01rem 0.08rem; border: 0; background: transparent; color: #4cb4f4; font-size: 0.6rem; font-weight: 600; line-height: 1.18; }
+.reference-contact-search { position: sticky; bottom: 0; z-index: 3; display: flex; gap: 0.6rem; margin-top: auto; padding: 0.7rem 0 0.2rem; background: linear-gradient(transparent, #000 25%); }
+.reference-contact-search label { display: flex; flex: 1; min-width: 0; gap: 0.4rem; align-items: center; padding: 0.4rem 0.7rem; border: 1px solid #282828; border-radius: 2rem; background: #141414; }
+.reference-contact-search label > span { font-size: 1.5rem; }
+.reference-contact-search input { width: 100%; min-width: 0; padding: 0; border: 0; box-shadow: none; color: white; background: transparent; font-size: 1rem; }
+.reference-contact-search svg { flex: none; width: 1.1rem; height: 1.1rem; }
+.reference-contact-search > button { width: 2.9rem; height: 2.9rem; flex: none; border: 1px solid #282828; border-radius: 50%; background: #141414; color: white; font-size: 1.8rem; }
+.screen-call-contact { background: linear-gradient(155deg, #99a9ab 0%, #7f889e 34%, #514265 66%, #08051c 100%); }
+.screen-call-contact .status-bar, .screen-call-contact .phone-body, .screen-call-contact .home-indicator { background: transparent; color: white; }
+.screen-call-contact .home-indicator span { background: white; }
+.reference-contact-poster { gap: 0.8rem; padding: 0 0.2rem 1rem; }
+.reference-contact-poster .ios-contact-navigation { margin: 0.4rem 0 1.4rem; }
+.reference-contact-poster .ios-contact-navigation button { min-width: 2.6rem; min-height: 2.6rem; padding: 0.4rem 0.9rem; border: 0; border-radius: 2rem; background: #000; color: white; font-size: 1rem; }
+.reference-contact-poster .ios-contact-navigation button:first-child { padding: 0; font-size: 2rem; }
+.reference-poster-avatar { display: grid; place-items: center; width: 12rem; height: 12rem; max-width: 65%; aspect-ratio: 1; border-radius: 50%; background: linear-gradient(145deg, #99a6ae, #79788f); color: white; font-size: 6.3rem; font-weight: 500; box-shadow: inset 1px 2px 3px #ffffff90, inset -2px -3px 3px #ffffff30, inset 2px -2px 4px #29293640; }
+.reference-contact-poster h2 { margin: 3.6rem 0 0.5rem; color: white; font-size: 2.3rem; font-weight: 700; letter-spacing: -0.02em; }
+.reference-contact-poster .ios-contact-actions { display: flex; justify-content: center; gap: 0.7rem; margin: 0 0 0.2rem; }
+.reference-contact-poster .ios-contact-actions button { width: 3.8rem; height: 3.8rem; min-height: 0; padding: 1.15rem; border-radius: 50%; background: #b8addf; color: #000; font-size: 0; gap: 0; }
+.reference-contact-poster .ios-contact-actions svg { width: 1.5rem; height: 1.5rem; }
+.reference-contact-poster .ios-contact-actions .next-pill { font-size: 0.72rem; }
+.reference-contact-poster .ios-contact-actions button:last-child { color: #8e82b3; }
+.reference-poster-row { display: flex; align-items: center; gap: 0.55rem; width: 100%; padding: 0.85rem; border: 0; border-radius: 1.4rem; background: #b7add8; color: #000; text-align: left; font-size: 0.95rem; }
+.reference-poster-row > span:last-child { margin-left: auto; font-size: 1.7rem; }
+.reference-contact-poster .ios-contact-information { min-height: 10rem; padding: 1rem; border-radius: 1.4rem; gap: 0.2rem; background: #b7add8; font-size: 1rem; }
+.reference-contact-poster .ios-contact-information > span { color: #7e7496; }
+.reference-contact-poster .ios-contact-information strong { color: #000; font-size: 1rem; }
+.reference-contact-poster .ios-contact-information hr { width: 100%; border: 0; border-top: 1px solid #ded8eb; }
+.reference-contact-poster .call-disclaimer { color: #ccc6e0; }
+
+.screen-phone-contacts, .screen-phone-contacts .status-bar, .screen-phone-contacts .phone-body, .screen-phone-contacts .home-indicator { background: #000; color: white; }
+.screen-phone-contacts .home-indicator span { background: white; }
+.reference-calls { display: flex; flex-direction: column; min-height: 100%; color: white; }
+.reference-calls-header { display: grid; grid-template-columns: 3.8rem 1fr 3.8rem; align-items: center; gap: 0.4rem; margin: 0.4rem 0 0.9rem; }
+.reference-calls-header h2 { margin: 0; font-family: inherit; font-size: 1.1rem; font-weight: 600; text-align: center; }
+.reference-calls-header button { min-height: 2.7rem; border: 1px solid #282828; border-radius: 2rem; color: #eee; background: #141414; font-size: 1rem; }
+.reference-calls-header button:last-child { justify-self: end; width: 2.7rem; font-size: 1.3rem; }
+.reference-recents { margin: 0; padding: 0; list-style: none; }
+.reference-recents li { position: relative; display: grid; grid-template-columns: 2.85rem minmax(0, 1fr) auto 2.65rem; align-items: center; gap: 0.45rem; min-height: 4.5rem; padding: 0.65rem 0; }
+.reference-recents li::after { content: ""; position: absolute; bottom: 0; left: 3.3rem; right: 0; height: 1px; background: #292929; }
+.reference-recents .reference-avatar { width: 2.85rem; height: 2.85rem; }
+.reference-recents .reference-avatar svg { width: 2.2rem; height: 2.2rem; fill: #f2f2f7; }
+.reference-recent-copy { display: grid; gap: 0.1rem; min-width: 0; }
+.reference-recent-copy strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 0.9rem; font-weight: 600; }
+.reference-recent-copy .missed-call { color: #ff535b; }
+.reference-recent-copy > span { color: #98989f; font-size: 0.8rem; }
+.reference-recents time { color: #98989f; font-size: 0.7rem; white-space: nowrap; }
+.reference-recent-call { display: grid; place-items: center; width: 2.6rem; height: 2.6rem; border: 0; border-radius: 50%; color: #55b5f5; background: #202022; }
+.reference-recent-call svg { width: 1.2rem; height: 1.2rem; fill: currentColor; }
+.reference-calls-bottom { position: sticky; bottom: 0; z-index: 4; display: flex; gap: 0.5rem; margin-top: auto; padding: 1.7rem 0 0.4rem; background: linear-gradient(transparent, #000 45%); }
+.reference-calls-tabs { display: grid; grid-template-columns: repeat(3, 1fr); flex: 1; padding: 0.2rem; border: 1px solid #292929; border-radius: 2.3rem; background: #141414; }
+.reference-calls-tabs button { position: relative; display: grid; justify-items: center; align-content: center; gap: 0.2rem; min-height: 3.3rem; padding: 0.25rem; border: 0; border-radius: 2rem; color: #eee; background: transparent; font-size: 0.65rem; }
+.reference-calls-tabs button.selected { color: #55b5f5; background: #333; }
+.reference-calls-tabs svg { width: 1.45rem; height: 1.45rem; }
+.reference-calls-tabs button > span:not(.next-pill):not(.sr-only) { font-size: 1.5rem; line-height: 1; }
+.reference-calls-tabs button .next-pill { font-size: 0.72rem; }
+.reference-calls-search { flex: none; width: 3.5rem; border: 1px solid #292929; border-radius: 50%; color: white; background: #141414; font-size: 2rem; }
+
+.screen-safety-inbox, .screen-safety-message, .screen-safety-report { background: #000; color: #fff; }
+.screen-safety-inbox .status-bar, .screen-safety-inbox .phone-body, .screen-safety-inbox .home-indicator,
+.screen-safety-message .status-bar, .screen-safety-message .phone-body, .screen-safety-message .home-indicator,
+.screen-safety-report .status-bar, .screen-safety-report .phone-body, .screen-safety-report .home-indicator { background: #000; color: #fff; }
+.screen-safety-inbox .home-indicator span, .screen-safety-message .home-indicator span, .screen-safety-report .home-indicator span { background: #fff; }
+.safety-inbox .safety-search { background: #1c1c1e; }
+.safety-inbox .safety-inbox-row { color: white; background: #000; border-bottom-color: #292929; }
+.safety-message-header { padding: 0.55rem 0 0.7rem; border: 0; background: #000; gap: 0; }
+.safety-message-header .unknown-avatar { width: 3.7rem; height: 3.7rem; background: linear-gradient(#514b63, #332b49); }
+.safety-message-header .unknown-avatar svg { width: 3rem; height: 3rem; fill: #fff; }
+.safety-message-header strong { padding: 0.35rem 0.8rem; border: 1px solid #292929; border-radius: 2rem; background: #141414; font-size: 1rem; }
+.safety-message-header .safety-back { top: 0.55rem; display: flex; align-items: center; gap: 0.4rem; min-height: 2.65rem; padding: 0.3rem 0.8rem; border: 1px solid #292929; border-radius: 2rem; color: #fff; background: #141414; }
+.safety-back > span { display: grid; place-items: center; width: 1.1rem; height: 1.1rem; border-radius: 50%; color: #111; background: #f5f5f5; font-size: 0.7rem; }
+.safety-message-time { margin: 0.75rem 0; color: #98989f; }
+.safety-message-bubble { max-width: 78%; padding: 0.8rem; border-radius: 1.2rem 1.2rem 1.2rem 0.4rem; color: #f5f5f5; background: #303033; font-size: 1rem; line-height: 1.24; }
+.safety-message-bubble::before { background: #303033; }
+.safety-fake-link { margin-top: 0.8rem; color: #0a84ff; }
+.safety-review { padding: 0.55rem 0.8rem; color: #64b9f7; background: #202023; }
+.safety-clues { color: #ede7d2; background: #29271f; }
+.safety-sender-note { margin: 1.4rem 1rem 0.8rem; color: #98989f; font-size: 0.75rem; line-height: 1.25; }
+.safety-spam-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin: 1.1rem 0 0.7rem; }
+.safety-spam-actions > button { position: relative; width: 100%; min-height: 2rem; margin: 0; padding: 0.45rem 0.4rem; border: 0; border-radius: 2rem; background: #202023; color: #59b6f7; font-size: 0.95rem; font-weight: 600; }
+.safety-spam-actions .safety-report-link { color: #ff535b; }
+.safety-composer { padding-top: 0.7rem; padding-bottom: 0.25rem; }
+.safety-composer > button:first-child { flex: none; width: 2.5rem; height: 2.5rem; border: 1px solid #292929; border-radius: 50%; color: white; background: #141414; }
+.safety-composer .safety-message-input { align-items: center; min-width: 0; border-color: #292929; color: #98989f; background: #141414; font-size: 0.9rem; }
+.safety-message-input svg { flex: none; width: 1rem; height: 1rem; }
+.ios-report-group { background: #252527f5; }
+.ios-report-description { color: #b0b0b7; }
+.ios-report-group .safety-report-confirm { border-top-color: #414144; color: #ff535b; }
+.ios-report-cancel { background: #252527; color: #59b6f7; }
+
+.screen-qr-camera .phone-body {
+  background: #171717;
+  color: white;
+  padding: 0.5rem 0.75rem;
+}
+
+.screen-qr-camera .home-indicator { background: #171717; }
+.screen-qr-camera .home-indicator span { background: white; }
+.qr-camera-screen { display: grid; justify-items: center; gap: 1.4rem; }
+.camera-mode-title { margin: 0; color: #fff; font-size: 0.9rem; }
+.qr-viewfinder { position: relative; display: grid; place-items: center; width: 100%; min-height: 16rem; border-radius: 0.7rem; background: linear-gradient(125deg, #584a38, #bcab88); }
+.cafe-qr-sign { display: grid; justify-items: center; gap: 0.55rem; width: 11rem; padding: 1rem; background: #fffdf2; color: #213d33; border-radius: 0.35rem; box-shadow: 0 8px 20px #0004; }
+.cafe-qr-sign strong { font-size: 1rem; }
+.cafe-qr-sign span { font-size: 0.75rem; }
+.cafe-qr-sign small { font-size: 0.55rem; color: #686868; }
+.practice-qr { width: 7rem; height: 7rem; }
+.qr-frame { position: absolute; width: 12rem; height: 14rem; border: 2px solid #ffd60a; border-radius: 0.8rem; pointer-events: none; }
+.qr-link-banner, .qr-scan-button { position: relative; max-width: 100%; padding: 0.75rem 0.55rem; border: 0; border-radius: 0.65rem; font-size: 0.75rem; font-weight: 600; color: #181818; background: #ffd60a; }
+.camera-mode-strip { color: #bcbcbc; word-spacing: 1rem; font-size: 0.65rem; }
+.camera-mode-strip strong { color: #ffd60a; }
+.camera-shutter-decoration { width: 3.7rem; height: 3.7rem; border: 3px solid white; border-radius: 50%; background: white; box-shadow: inset 0 0 0 3px #171717; }
+.screen-cafe-menu .phone-body { padding: 0; background: #fffdf5; }
+.safari-address { position: sticky; top: 0; z-index: 2; padding: 0.8rem 0.4rem; text-align: center; font-size: 0.7rem; color: #444; background: #f2f2f7; border-bottom: 1px solid #d8d8dd; }
+.cafe-menu-page { padding: 1.5rem 1rem; color: #224536; }
+.cafe-menu-page h2 { margin: 0.3rem 0; font-size: 1.65rem; }
+.cafe-menu-page p { font-size: 0.8rem; }
+.cafe-menu-eyebrow { letter-spacing: 0.15em; font-weight: 700; }
+.cafe-menu-page h3 { margin: 1.5rem 0 0.7rem; font-size: 1.15rem; }
+.cafe-menu-page dl { margin: 0; }
+.cafe-menu-page dl div { display: flex; justify-content: space-between; gap: 1rem; padding: 0.7rem 0; border-bottom: 1px solid #d8dfd2; font-size: 0.85rem; }
+.cafe-menu-page dd { margin: 0; white-space: nowrap; }
+.cafe-menu-page .primary-phone { position: relative; margin-top: 1.6rem; font-size: 0.85rem; }
+.safety-search { padding: 0.5rem; border-radius: 0.6rem; background: #eeeeef; color: #8e8e93; font-size: 0.9rem; }
+.safety-filter-label { margin: 1rem 0 1.6rem; color: #8e8e93; font-size: 0.75rem; }
+.safety-inbox-row { position: relative; display: grid; grid-template-columns: 2.5rem 1fr auto; gap: 0.6rem; align-items: center; width: 100%; padding: 0.7rem 0.3rem; border: 0; border-bottom: 1px solid #e5e5ea; background: white; text-align: left; font-size: 0.9rem; }
+.unknown-avatar { display: grid; place-items: center; width: 2.5rem; height: 2.5rem; border-radius: 50%; color: white; background: #a5a5ac; font-size: 1.2rem; }
+.safety-inbox-row small { display: block; margin-top: 0.25rem; color: #8e8e93; font-size: 0.75rem; }
+.safety-message-header { display: grid; justify-items: center; gap: 0.4rem; padding: 0.6rem; border-bottom: 1px solid #eee; font-size: 0.8rem; }
+.safety-message-time { margin: 1rem 0; text-align: center; color: #8e8e93; font-size: 0.6rem; }
+.safety-message-bubble { max-width: 90%; padding: 0.8rem; border-radius: 1.1rem 1.1rem 1.1rem 0.25rem; background: #e9e9eb; color: #000; font-size: 0.9rem; line-height: 1.45; }
+.safety-fake-link { display: block; padding: 0.3rem 0; border: 0; background: transparent; color: #007aff; font: inherit; text-decoration: underline; overflow-wrap: anywhere; }
+.safety-sender-note { color: #8e8e93; font-size: 0.7rem; text-align: center; }
+.safety-review { position: relative; margin-top: 1.8rem; font-size: 0.85rem; }
+.safety-clues { margin: 1rem 0; padding: 0.85rem; background: #fff4d9; border-radius: 0.75rem; color: #483b1c; font-size: 0.78rem; line-height: 1.4; }
+.safety-clues h3 { margin: 0 0 0.4rem; font-size: 0.95rem; }
+.safety-clues ul { padding-left: 1rem; }
+.safety-clues li { margin: 0.3rem 0; }
+.safety-report-link { position: relative; display: block; min-height: 2.75rem; margin: 1.8rem auto 0; padding: 0.5rem 0.8rem; border: 0; border-radius: 0.6rem; color: #007aff; background: white; font-size: 0.85rem; }
+.safety-report-screen { display: grid; justify-items: center; gap: 1rem; padding: 2rem 0.5rem; text-align: center; }
+.safety-report-screen h2 { margin: 0; font-size: 1.3rem; }
+.safety-report-screen p { font-size: 0.85rem; line-height: 1.45; }
+.safety-report-confirm { position: relative; width: 100%; margin-top: 0.75rem; padding: 0.85rem; border: 0; border-radius: 0.75rem; color: #ff3b30; background: #f2f2f7; font-size: 0.9rem; }
+.safety-success { color: #248047; }
+
 @keyframes phone-view-fade {
   from { opacity: 0; }
   to { opacity: 1; }
@@ -2633,7 +3308,10 @@ button:not(:disabled):active {
 @media (prefers-reduced-transparency: reduce) {
   .conversation-header,
   .composer,
-  .phone-alert {
+  .phone-alert,
+  .ios-calendar-header,
+  .ios-reminder-nav,
+  .ios-calendar-tabs {
     background: #f2f2f7;
     backdrop-filter: none;
   }

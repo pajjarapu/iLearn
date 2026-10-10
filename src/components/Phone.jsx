@@ -91,7 +91,7 @@ export default function Phone({ phone, highlight, alert, speechOn, onToggleSpeec
               <span className="battery"><span className="battery-level" /></span>
             </span>
           </div>
-          {!['home', 'messages', 'thread', 'picker'].includes(phone.screen) ? (
+          {!['home', 'messages', 'thread', 'picker', 'calendar', 'day', 'reminder', 'phone', 'phone-contacts', 'call-contact', 'calling', 'qr-camera', 'cafe-menu', 'safety-inbox', 'safety-message', 'safety-report'].includes(phone.screen) ? (
             <div className="phone-toolbar">
               <Tap id="back" highlight={highlight} className="chrome-btn" onClick={() => onAction({ type: "back" })}>
                 Back
@@ -108,6 +108,8 @@ export default function Phone({ phone, highlight, alert, speechOn, onToggleSpeec
             </p>
           ) : null}
           <div className="phone-body">
+            {['qr-camera', 'cafe-menu'].includes(phone.screen) ? <CafeScreens phone={phone} highlight={highlight} onAction={onAction} /> : null}
+            {['safety-inbox', 'safety-message', 'safety-report'].includes(phone.screen) ? <SafetyScreens phone={phone} highlight={highlight} onAction={onAction} /> : null}
             {phone.screen === "home" ? <HomeScreen highlight={highlight} onAction={onAction} /> : null}
             {phone.screen === "messages" ? (
               <MessagesScreen phone={phone} highlight={highlight} onAction={onAction} />
@@ -126,7 +128,9 @@ export default function Phone({ phone, highlight, alert, speechOn, onToggleSpeec
             ) : null}
             {phone.screen === "photos" ? <PhotosScreen highlight={highlight} onAction={onAction} /> : null}
             {phone.screen === "photo-view" ? <PhotoViewScreen phone={phone} /> : null}
-            {phone.screen === "phone" ? <CallsScreen highlight={highlight} onAction={onAction} /> : null}
+            {phone.screen === "phone" ? <RecentCallsScreen highlight={highlight} onAction={onAction} /> : null}
+            {phone.screen === "phone-contacts" ? <CallsScreen phone={phone} highlight={highlight} onAction={onAction} /> : null}
+            {phone.screen === "call-contact" ? <CallContactScreen phone={phone} highlight={highlight} onAction={onAction} /> : null}
             {phone.screen === "calling" ? (
               <CallingScreen phone={phone} highlight={highlight} onAction={onAction} />
             ) : null}
@@ -578,46 +582,121 @@ function PhotoViewScreen({ phone }) {
   );
 }
 
-function CallsScreen({ highlight, onAction }) {
+function RecentCallsScreen({ highlight, onAction }) {
+  const calls = [
+    { name: "+1 (202) 555-0186", initials: "", detail: "Potential Spam", time: "4:09 PM", missed: true },
+    ...["rosa", "maya", "luis", "sam", "patel", "rosa"].map((id, index) => ({ ...contactById(id), detail: index % 2 ? "mobile" : "phone", time: index === 0 ? "3:38 PM" : index === 1 ? "11:08 AM" : "Yesterday", missed: index === 3 })),
+  ];
   return (
-    <ul className="people">
-      {CONTACTS.map((contact) => (
+    <div className="reference-calls">
+      <header className="reference-calls-header"><button onClick={() => onAction({ type: "phone-tool", label: "Edit" })}>Edit</button><h2>Calls</h2><button aria-label="Filter calls" onClick={() => onAction({ type: "phone-tool", label: "Filter calls" })}>☰</button></header>
+      <ul className="reference-recents">
+        {calls.map((call, index) => <li key={index}>
+          <span className="reference-avatar" aria-hidden="true">{call.initials || <PhoneControlIcon name="person" />}</span>
+          <div className="reference-recent-copy"><strong className={call.missed ? "missed-call" : ""}>{call.name}</strong><span>↙ {call.detail}</span></div>
+          <time>{call.time}</time>
+          <button className="reference-recent-call" aria-label={`Call ${call.name}`} onClick={() => onAction({ type: call.id ? "call" : "phone-tool", contactId: call.id })}><PhoneControlIcon name="phone" /></button>
+        </li>)}
+      </ul>
+      <nav className="reference-calls-bottom" aria-label="Phone navigation"><div className="reference-calls-tabs">
+        <button className="selected" onClick={() => onAction({ type: "phone-tool", label: "Calls" })}><span aria-hidden="true">◷</span>Calls</button>
+        <Tap id="phone-contacts" highlight={highlight} onClick={() => onAction({ type: "open-phone-contacts" })}><PhoneControlIcon name="person" />Contacts</Tap>
+        <button onClick={() => onAction({ type: "phone-tool", label: "Keypad" })}><PhoneControlIcon name="keypad" />Keypad</button>
+      </div><button className="reference-calls-search" aria-label="Search calls" onClick={() => onAction({ type: "phone-tool", label: "Search calls" })}>⌕</button></nav>
+    </div>
+  );
+}
+
+function CallsScreen({ phone, highlight, onAction }) {
+  const [query, setQuery] = useState("");
+  const contacts = [...CONTACTS].sort((a, b) => a.name.localeCompare(b.name)).filter((contact) => contact.name.toLowerCase().includes(query.toLowerCase()));
+  return (
+    <div className="ios-phone-contacts reference-contacts">
+      <header className="reference-contacts-header"><button aria-label="Back" onClick={() => onAction({ type: "home" })}>‹</button><h2>Contacts</h2></header>
+      <button className="reference-my-card" onClick={() => onAction({ type: "phone-tool", label: "My Card" })}><span className="reference-avatar my-card-avatar">TT</span><span><strong>TechTown Learner</strong><small>My Card</small></span></button>
+      <ul className="people">
+      {contacts.map((contact, index) => (
         <li key={contact.id}>
+          {index === 0 || contacts[index - 1].name[0] !== contact.name[0] ? <div className="reference-letter" id={`contact-letter-${contact.name[0]}`}>{contact.name[0]}</div> : null}
           <Tap
             id={`call-${contact.id}`}
             highlight={highlight}
             className="person"
-            onClick={() => onAction({ type: "call", contactId: contact.id })}
+            onClick={() => onAction({ type: phone.lesson === "cafe" ? "open-call-contact" : "call", contactId: contact.id })}
           >
-            <Avatar initials={contact.initials} pattern={contact.pattern} />
+            <span className="reference-avatar" aria-hidden="true">{contact.initials}</span>
             <span className="person-copy">
-              <span className="person-name">Call {contact.short}</span>
-              <span className="person-relation">{contact.relation}</span>
+              <span className="person-name">{phone.lesson === "cafe" ? contact.name : `Call ${contact.short}`}</span>
             </span>
           </Tap>
         </li>
       ))}
     </ul>
+      {!contacts.length ? <p>No contacts found.</p> : null}
+      <aside className="reference-alphabet" aria-label="Contact index">{"ABCDEFGHIJKLMNOPQRSTUVWXYZ#".split("").map(letter => <button key={letter} onClick={() => { const section = document.getElementById(`contact-letter-${letter}`); const scroller = section?.closest(".phone-body"); if (scroller) scroller.scrollTo({ top: scroller.scrollTop + section.getBoundingClientRect().top - scroller.getBoundingClientRect().top, behavior: "auto" }); }}>{letter}</button>)}</aside>
+      <div className="reference-contact-search"><label><span aria-hidden="true">⌕</span><input aria-label="Search contacts" placeholder="Search" value={query} onChange={event => setQuery(event.target.value)} /><PhoneControlIcon name="mic" /></label><button aria-label="Add contact" onClick={() => onAction({ type: "phone-tool", label: "Add contact" })}>＋</button></div>
+    </div>
   );
 }
 
 function CallingScreen({ phone, highlight, onAction }) {
   const contact = contactById(phone.contactId);
   return (
-    <div className="center-card">
+    <div className="practice-call-screen">
       {contact ? <Avatar initials={contact.initials} pattern={contact.pattern} /> : null}
-      <h3>Calling {contact?.name ?? "someone"}</h3>
-      <p>This is a practice call. No real phone will ring.</p>
+      <h3>{contact?.name ?? "Unknown"}</h3>
+      <p className="ios-call-status">calling…</p>
+      <div className="ios-call-controls">
+        {[ ["mute", "mic"], ["keypad", "keypad"], ["speaker", "speaker"], ["add call", "plus"], ["FaceTime", "video"], ["contacts", "person"] ].map(([label, icon]) => <button key={label} onClick={() => onAction({ type: "call-tool", label })}><span><PhoneControlIcon name={icon} /></span>{label}</button>)}
+      </div>
       <Tap
         id="end-call"
         highlight={highlight}
-        className="primary-phone"
+        className="practice-hang-up"
         onClick={() => onAction({ type: "end-call" })}
       >
-        End call
+        <PhoneControlIcon name="hangup" /><span className="sr-only">End call</span>
       </Tap>
     </div>
   );
+}
+
+function CallContactScreen({ phone, highlight, onAction }) {
+  const contact = contactById(phone.contactId);
+  if (!contact) {
+    return <div className="call-contact-card"><p>This contact is unavailable.</p><button className="text-btn" onClick={() => onAction({ type: "back" })}>Back to Contacts</button></div>;
+  }
+  return (
+    <div className="call-contact-card reference-contact-poster">
+      <div className="ios-contact-navigation"><button aria-label="Back to Contacts" onClick={() => onAction({ type: "back" })}>‹</button><button onClick={() => onAction({ type: "phone-tool", label: "Edit" })}>Edit</button></div>
+      <div className="reference-poster-avatar" aria-hidden="true">{contact.short[0]}</div>
+      <h2>{contact.short}</h2>
+      <div className="ios-contact-actions">
+        <button onClick={() => onAction({ type: "phone-tool", label: "Message" })}><PhoneControlIcon name="message" />message</button>
+        <Tap id="start-call" highlight={highlight} className="practice-start-call" onClick={() => onAction({ type: "call", contactId: contact.id })}><PhoneControlIcon name="phone" />call</Tap>
+        <button onClick={() => onAction({ type: "phone-tool", label: "Video" })}><PhoneControlIcon name="video" />video</button>
+        <button onClick={() => onAction({ type: "phone-tool", label: "Mail" })}><PhoneControlIcon name="mail" />mail</button>
+      </div>
+      <button className="reference-poster-row" onClick={() => onAction({ type: "phone-tool", label: "Contact Photo & Poster" })}><span className="reference-avatar">{contact.short[0]}</span><span>Contact Photo &amp; Poster</span><span aria-hidden="true">›</span></button>
+      <div className="ios-contact-information"><span>phone</span><strong>+1 (202) 555-0143</strong><hr /><span>Notes</span><p>Friend from book club</p></div>
+      <p className="call-disclaimer">Practice contact. No real phone will ring.</p>
+    </div>
+  );
+}
+
+function PhoneControlIcon({ name }) {
+  const paths = {
+    phone: "M6 3h4l2 5-3 2a15 15 0 0 0 5 5l2-3 5 2v4c-9 3-19-7-15-15Z",
+    hangup: "M3 15v-4c5-5 13-5 18 0v4h-5v-4a13 13 0 0 0-8 0v4Z",
+    mic: "M9 4a3 3 0 0 1 6 0v8a3 3 0 0 1-6 0ZM6 10v2a6 6 0 0 0 12 0v-2M12 18v4M8 22h8",
+    speaker: "M3 9h4l6-5v16l-6-5H3ZM17 8a6 6 0 0 1 0 8M20 5a10 10 0 0 1 0 14",
+    plus: "M12 3v18M3 12h18",
+    video: "M3 6h12v12H3ZM15 10l6-4v12l-6-4",
+    person: "M8 7a4 4 0 1 0 8 0 4 4 0 0 0-8 0ZM4 21v-3c0-6 16-6 16 0v3",
+    message: "M3 4h18v13H9l-6 4Z",
+    mail: "M3 5h18v14H3ZM3 5l9 8 9-8",
+  };
+  return <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">{name === "keypad" ? [5,12,19].flatMap(x => [5,12,19].map(y => <circle key={`${x}-${y}`} cx={x} cy={y} r="1.5" fill="currentColor" />)) : <path d={paths[name]} />}</svg>;
 }
 
 function CameraScreen({ highlight, onAction }) {
@@ -630,6 +709,96 @@ function CameraScreen({ highlight, onAction }) {
       <Tap id="shutter" highlight={highlight} className="primary-phone" onClick={() => onAction({ type: "shutter" })}>
         Take photo
       </Tap>
+    </div>
+  );
+}
+
+function CafeScreens({ phone, highlight, onAction }) {
+  if (phone.screen === "cafe-menu") return (
+    <div className="practice-safari">
+      <div className="safari-address">▣ techtown-cafe.example/menu</div>
+      <article className="cafe-menu-page">
+        <p className="cafe-menu-eyebrow">WELCOME TO</p><h2>TechTown Café</h2><p>Something warm. Something delicious.</p>
+        <h3>Drinks</h3>
+        <dl><div><dt>House coffee</dt><dd>$3.00</dd></div><div><dt>Herbal tea</dt><dd>$2.50</dd></div><div><dt>Latte</dt><dd>$4.00</dd></div></dl>
+        <h3>Food</h3>
+        <dl><div><dt>Blueberry muffin</dt><dd>$3.50</dd></div><div><dt>Garden sandwich</dt><dd>$7.00</dd></div><div><dt>Soup of the day</dt><dd>$5.00</dd></div></dl>
+        <p>Practice menu · No orders or payments</p>
+        <Tap id="finish-menu" highlight={highlight} className="primary-phone" onClick={() => onAction({ type: "finish-menu" })}>{phone.menuViewed ? "Menu found ✓" : "I found the menu"}</Tap>
+      </article>
+    </div>
+  );
+  return (
+    <div className="qr-camera-screen">
+      <p className="camera-mode-title">Camera</p>
+      <div className="qr-viewfinder">
+        <div className="cafe-qr-sign"><strong>TechTown Café</strong><PracticeQR /><span>Scan for our menu</span><small>Simulated QR code</small></div>
+        <span className="qr-frame" aria-hidden="true" />
+      </div>
+      {phone.qrDetected ? (
+        <Tap id="open-qr-menu" highlight={highlight} className="qr-link-banner" onClick={() => onAction({ type: "open-qr-menu" })}>▣ techtown-cafe.example/menu <span>↗</span></Tap>
+      ) : (
+        <Tap id="scan-qr" highlight={highlight} className="qr-scan-button" onClick={() => onAction({ type: "scan-qr" })}>Scan QR code</Tap>
+      )}
+      <div className="camera-mode-strip" aria-hidden="true">VIDEO <strong>PHOTO</strong> PORTRAIT</div>
+      <div className="camera-shutter-decoration" aria-hidden="true" />
+    </div>
+  );
+}
+
+function PracticeQR() {
+  return (
+    <svg className="practice-qr" viewBox="0 0 29 29" aria-label="Practice QR code illustration" role="img">
+      <rect width="29" height="29" fill="white" />
+      {[ [2, 2], [20, 2], [2, 20] ].map(([x,y]) => <g key={`${x}-${y}`}><rect x={x} y={y} width="7" height="7" fill="black" /><rect x={x+1} y={y+1} width="5" height="5" fill="white" /><rect x={x+2} y={y+2} width="3" height="3" fill="black" /></g>)}
+      {Array.from({ length: 25 * 25 }, (_, i) => {
+        const x = i % 25 + 2, y = Math.floor(i / 25) + 2;
+        if ((x < 10 && y < 10) || (x > 18 && y < 10) || (x < 10 && y > 18)) return null;
+        return (x * y + x * 7 + y * 3) % 5 < 2 ? <rect key={i} x={x} y={y} width="1" height="1" fill="black" /> : null;
+      })}
+    </svg>
+  );
+}
+
+function SafetyScreens({ phone, highlight, onAction }) {
+  if (phone.screen === "safety-inbox") return (
+    <div className="messages-screen safety-inbox">
+      <div className="ios-contact-navigation"><button onClick={() => onAction({ type: "home" })}>‹ Filters</button><button aria-label="Compose message" onClick={() => onAction({ type: "message-tool" })}>✎</button></div>
+      <header className="messages-header"><h2>Unknown Senders</h2></header>
+      <div className="safety-search" aria-hidden="true">⌕ Search</div>
+      <p className="safety-filter-label">Unknown Senders</p>
+      <Tap id="open-suspicious" highlight={highlight} className="safety-inbox-row" onClick={() => onAction({ type: "open-suspicious" })}>
+        <span className="unknown-avatar" aria-hidden="true"><PhoneControlIcon name="person" /></span>
+        <span><strong>{phone.senderNumber}</strong><small>Your parcel is on hold. Pay within 30 minutes…</small></span><span className="safety-inbox-time">9:41 AM ›</span>
+      </Tap>
+    </div>
+  );
+  if (phone.screen === "safety-report") return (
+    <div className="safety-report-screen">
+      {phone.suspiciousReported ? <><h2>Junk reported</h2><p>The fictional message has been removed.</p><p className="safety-success">✓ You kept the link unopened.</p></> : <>
+        <div className="safety-report-background" inert=""><SafetyScreens phone={{ ...phone, screen: "safety-message" }} highlight={null} onAction={() => {}} /></div>
+        <div className="ios-report-scrim" />
+        <div className="ios-report-sheet" role="dialog" aria-modal="true" aria-labelledby="junk-title">
+          <div className="ios-report-group"><div className="ios-report-description"><h2 id="junk-title">Report Junk</h2><p>This practice message will be deleted and marked as junk.</p></div>
+          <Tap id="confirm-report" highlight={highlight} className="safety-report-confirm" onClick={() => onAction({ type: "confirm-report" })}>Delete and Report Junk</Tap></div>
+          <button className="ios-report-cancel" onClick={() => onAction({ type: "back" })}>Cancel</button>
+        </div>
+      </>}
+    </div>
+  );
+  return (
+    <div className="safety-message-screen">
+      <header className="safety-message-header"><button className="safety-back" aria-label="Back to messages" onClick={() => onAction({ type: "back" })}>‹ <span>1</span></button><span className="unknown-avatar" aria-hidden="true"><PhoneControlIcon name="person" /></span><strong>{phone.senderNumber} ›</strong></header>
+      <p className="safety-message-time">Today 9:41 AM</p>
+      <div className="safety-message-bubble">Your parcel is on hold. Pay a $1.99 delivery fee within 30 minutes or it will be returned. Enter your card details here:
+        <button className="safety-fake-link" onClick={() => onAction({ type: "unsafe-link" })}>parcel-fee.example/claim</button>
+      </div>
+      <p className="safety-sender-note">If you did not expect this message from an unknown sender, it may be spam.</p>
+      <div className="safety-spam-actions">
+        <Tap id="report-suspicious" highlight={highlight} className="safety-report-link" onClick={() => onAction({ type: "report-suspicious" })}>Delete</Tap>
+        <button onClick={() => onAction({ type: "mark-known" })}>Mark as Known</button>
+      </div>
+      <div className="safety-composer"><button aria-label="Add attachment" onClick={() => onAction({ type: "message-tool" })}>＋</button><button className="safety-message-input" onClick={() => onAction({ type: "message-tool" })}>Text Message · SMS <PhoneControlIcon name="mic" /></button></div>
     </div>
   );
 }
@@ -656,8 +825,17 @@ function CalendarScreen({ highlight, onAction }) {
   const blanks = Array.from({ length: CALENDAR.startWeekday }, (_, index) => index);
   const days = Array.from({ length: CALENDAR.days }, (_, index) => index + 1);
   return (
-    <div>
-      <p className="home-lead">Tap a day, or choose an event from the list.</p>
+    <div className="ios-calendar">
+      <header className="ios-calendar-header">
+        <Tap id="back" highlight={highlight} className="ios-calendar-year" onClick={() => onAction({ type: "back" })}>
+          <span aria-hidden="true">‹</span> 2026
+        </Tap>
+        <div className="ios-calendar-tools" aria-label="Calendar tools">
+          <button type="button" aria-label="Search" onClick={() => onAction({ type: "calendar-tool", label: "Search" })}>⌕</button>
+          <button type="button" aria-label="Add event" onClick={() => onAction({ type: "calendar-tool", label: "Add event" })}>＋</button>
+        </div>
+      </header>
+      <h1 className="ios-calendar-month">October</h1>
       <div className="weekdays" aria-hidden="true">
         {WEEKDAYS.map((day) => (
           <span key={day}>{day}</span>
@@ -674,34 +852,41 @@ function CalendarScreen({ highlight, onAction }) {
               key={day}
               id={`day-${day}`}
               highlight={highlight}
-              className="day-btn"
+              className={`day-btn ${day === CALENDAR.today ? "is-today" : ""}`.trim()}
               onClick={() => onAction({ type: "open-day", day })}
             >
               <span className="day-num">{day}</span>
-              {day === CALENDAR.today ? <span className="day-tag">Today</span> : null}
-              {event ? <span className="day-tag">Event</span> : null}
+              {event ? <span className="calendar-event-dot" /> : null}
             </Tap>
           );
         })}
       </div>
-      <h3 className="section-label">Events</h3>
-      <ul className="people">
+      <h2 className="ios-events-title">Upcoming</h2>
+      <ul className="ios-event-list">
         {Object.entries(CALENDAR.events).map(([day, event]) => (
           <li key={day}>
             <Tap
               id={`event-${day}`}
               highlight={highlight}
-              className="person"
+              className="ios-event-row"
               onClick={() => onAction({ type: "open-day", day: Number(day) })}
             >
+              <span className="ios-event-color" aria-hidden="true" />
+              <span className="ios-event-date"><strong>OCT</strong><span>{day}</span></span>
               <span className="person-copy">
                 <span className="person-name">{event.title}</span>
-                <span className="person-relation">October {day}</span>
+                <span className="person-relation">{event.time ?? "All-day"} · {event.location ?? "Calendar"}</span>
               </span>
+              <span className="ios-row-chevron" aria-hidden="true">›</span>
             </Tap>
           </li>
         ))}
       </ul>
+      <nav className="ios-calendar-tabs" aria-label="Calendar navigation">
+        <button type="button" onClick={() => onAction({ type: "calendar-tool", label: "Today" })}>Today</button>
+        <button type="button" onClick={() => onAction({ type: "calendar-tool", label: "Calendars" })}>Calendars</button>
+        <button type="button" onClick={() => onAction({ type: "calendar-tool", label: "Inbox" })}>Inbox</button>
+      </nav>
     </div>
   );
 }
@@ -711,17 +896,24 @@ function DayScreen({ phone, highlight, onAction }) {
   const weekday = WEEKDAYS[(CALENDAR.startWeekday + phone.day - 1) % 7];
   const reminder = phone.reminders[phone.day];
   return (
-    <div className="center-card">
-      <h3>
-        {weekday}, October {phone.day}
-      </h3>
-      {phone.day === CALENDAR.today ? <p>This day is marked Today.</p> : null}
+    <div className="ios-calendar ios-day-view">
+      <header className="ios-calendar-header ios-day-header">
+        <Tap id="back" highlight={highlight} className="ios-calendar-year" onClick={() => onAction({ type: "back" })}>
+          <span aria-hidden="true">‹</span> October
+        </Tap>
+        <strong>{weekday}, Oct {phone.day}</strong>
+        <button type="button" className="ios-calendar-add" aria-label="Add event" onClick={() => onAction({ type: "calendar-tool", label: "Add event" })}>＋</button>
+      </header>
+      <div className="ios-day-number"><span>{weekday}</span><strong>{phone.day}</strong></div>
       {event ? (
-        <>
-          <p>
-            <strong>{event.title}.</strong>
-          </p>
-          <p>{event.detail}</p>
+        <section className="ios-event-detail">
+          <span className="ios-event-color" aria-hidden="true" />
+          <div>
+            <h2>{event.title}</h2>
+            <p>{event.time ?? "All-day"}</p>
+            <p>{event.location ?? "Community Center"}</p>
+          </div>
+          <p className="ios-event-notes">{event.detail}</p>
           {reminder ? (
             <p className="calendar-reminder-saved" role="status">
               <strong>Reminder:</strong> {reminder}
@@ -730,14 +922,14 @@ function DayScreen({ phone, highlight, onAction }) {
           <Tap
             id="add-reminder"
             highlight={highlight}
-            className="primary-phone calendar-reminder-button"
+            className="calendar-reminder-button"
             onClick={() => onAction({ type: "open-reminder" })}
           >
             {reminder ? "Change reminder" : "Add reminder"}
           </Tap>
-        </>
+        </section>
       ) : (
-        <p>Nothing is planned for this day on the practice phone.</p>
+        <p className="ios-empty-day">No events scheduled.</p>
       )}
     </div>
   );
@@ -746,9 +938,22 @@ function DayScreen({ phone, highlight, onAction }) {
 function ReminderScreen({ phone, highlight, onAction }) {
   const choices = ["At time of event", "1 hour before", "1 day before"];
   return (
-    <div className="reminder-screen">
-      <p className="home-lead">Choose when the phone should remind you about Book club.</p>
-      <div className="settings-list reminder-options">
+    <div className="reminder-screen ios-calendar">
+      <header className="ios-reminder-nav">
+        <Tap id="back" highlight={highlight} className="ios-nav-action" onClick={() => onAction({ type: "back" })}>Cancel</Tap>
+        <h1>Alert</h1>
+        <Tap
+          id="save-reminder"
+          highlight={highlight}
+          className="ios-nav-action ios-nav-done"
+          onClick={() => onAction({ type: "save-reminder" })}
+          disabled={!phone.reminderDraft}
+        >
+          Done
+        </Tap>
+      </header>
+      <p className="ios-reminder-label">ALERT</p>
+      <div className="settings-list reminder-options ios-reminder-options">
         {choices.map((choice) => (
           <Tap
             key={choice}
@@ -762,15 +967,7 @@ function ReminderScreen({ phone, highlight, onAction }) {
           </Tap>
         ))}
       </div>
-      <Tap
-        id="save-reminder"
-        highlight={highlight}
-        className="primary-phone reminder-save"
-        onClick={() => onAction({ type: "save-reminder" })}
-        disabled={!phone.reminderDraft}
-      >
-        Done
-      </Tap>
+      <p className="ios-reminder-help">Calendar will notify you before Book club begins.</p>
     </div>
   );
 }
@@ -839,8 +1036,8 @@ function AppIcon({ name }) {
       ) : null}
       {name === "grid" ? (
         <>
-          <rect x="8" y="10" width="32" height="28" rx="3" fill="none" stroke="currentColor" strokeWidth="3" />
-          <path d="M8 18 h32 M20 18 v20 M32 18 v20" stroke="currentColor" strokeWidth="3" />
+          <text x="24" y="14" textAnchor="middle" fill="#ff3b30" fontSize="9" fontWeight="700">OCT</text>
+          <text x="24" y="39" textAnchor="middle" fill="#1c1c1e" fontSize="27" fontWeight="400">10</text>
         </>
       ) : null}
       {name === "sliders" ? (

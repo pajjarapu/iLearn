@@ -88,13 +88,15 @@ export const PLACES = [
   {
     id: "family",
     name: "Family house",
+    lessonTitle: "Send a photo",
     kicker: "Open today",
-    summary: "Sending a photo in Messages. Video calls will be a later visit.",
+    summary: "Choose a saved photo and send it in Messages.",
     future: false,
   },
   {
     id: "community",
     name: "Community center",
+    lessonTitle: "Add a calendar reminder",
     kicker: "Future lesson",
     summary: "Finding events and adding calendar reminders.",
     future: true,
@@ -104,18 +106,20 @@ export const PLACES = [
   {
     id: "cafe",
     name: "Café",
-    kicker: "Future lesson",
-    summary: "Scanning QR codes and navigating menus.",
-    future: true,
+    lessonTitle: "Make a phone call",
+    kicker: "Open today",
+    summary: "Choose a contact, start a phone call, and hang up.",
+    future: false,
     coming:
-      "At the café you will practice scanning a QR code and reading a menu on the phone. That lesson is not part of today’s visit.",
+      "At the café you will practice calling Rosa from your contacts and ending the call.",
   },
   {
     id: "safety",
     name: "Safety station",
-    kicker: "Future lesson",
+    lessonTitle: "Spot suspicious messages",
+    kicker: "Open today",
     summary: "Recognizing suspicious messages and choosing safe responses.",
-    future: true,
+    future: false,
     coming:
       "At the safety station you will practice spotting a suspicious message and choosing a careful response. That lesson is not part of today’s visit.",
   },
@@ -127,14 +131,18 @@ export const CALENDAR = {
   monthIndex: 9,
   startWeekday: 4,
   days: 31,
-  today: 9,
+  today: 10,
   events: {
     13: {
       title: "Book club",
-      detail: "Tuesday with Rosa. You will talk about chapter two. Adding a reminder is a future TechTown lesson.",
+      time: "6:00 PM–7:00 PM",
+      location: "Community Center",
+      detail: "Tuesday with Rosa. You will talk about chapter two.",
     },
     15: {
       title: "Clinic checkup",
+      time: "10:00 AM–10:45 AM",
+      location: "Dr. Patel’s office",
       detail: "Thursday at 10 with Dr. Patel. This is only a practice calendar.",
     },
   },
@@ -210,6 +218,11 @@ export function createPhone() {
     banner: null,
     seq: 10,
     lastSent: null,
+    qrDetected: false,
+    menuViewed: false,
+    safetyCluesReviewed: false,
+    suspiciousReported: false,
+    callCompleted: false,
   };
 }
 
@@ -287,6 +300,7 @@ export function reducePhone(state, action) {
       };
       const screen = screens[action.app];
       if (!screen) return state;
+      if (state.lesson === "safety" && action.app === "messages") return push(base, "safety-inbox");
       return push(base, screen, { contactId: null, previewPhotoId: null, day: null });
     }
     case "back":
@@ -407,11 +421,21 @@ export function reducePhone(state, action) {
         },
       };
     }
+    case "open-call-contact":
+      if (!["phone", "phone-contacts"].includes(state.screen) || !contactById(action.contactId)) return state;
+      return push(base, "call-contact", { contactId: action.contactId });
+    case "open-phone-contacts":
+      return state.screen === "phone" ? push(base, "phone-contacts") : state;
     case "call":
       if (!contactById(action.contactId)) return state;
       return push(base, "calling", { contactId: action.contactId });
     case "end-call":
-      return pop({ ...base, contactId: null });
+      if (state.screen !== "calling") return state;
+      return pop({
+        ...base,
+        callCompleted: state.callCompleted || (state.lesson === "cafe" && state.contactId === "rosa"),
+        contactId: state.stack[state.stack.length - 1] === "call-contact" ? state.contactId : null,
+      });
     case "shutter":
       return push(base, "camera-result");
     case "retake":
@@ -419,6 +443,20 @@ export function reducePhone(state, action) {
       return { ...base, screen: "camera" };
     case "open-day":
       return push(base, "day", { day: action.day });
+    case "scan-qr":
+      return state.screen === "qr-camera" ? { ...base, qrDetected: true } : state;
+    case "open-qr-menu":
+      return state.screen === "qr-camera" && state.qrDetected ? push(base, "cafe-menu") : state;
+    case "finish-menu":
+      return state.screen === "cafe-menu" ? { ...base, menuViewed: true } : state;
+    case "open-suspicious":
+      return state.screen === "safety-inbox" ? push(base, "safety-message") : state;
+    case "review-clues":
+      return state.screen === "safety-message" ? { ...base, safetyCluesReviewed: true } : state;
+    case "report-suspicious":
+      return state.screen === "safety-message" ? push(base, "safety-report") : state;
+    case "confirm-report":
+      return state.screen === "safety-report" ? { ...base, suspiciousReported: true } : state;
     case "open-reminder":
       if (state.screen !== "day" || !CALENDAR.events[state.day]) return state;
       return push(base, "reminder", {

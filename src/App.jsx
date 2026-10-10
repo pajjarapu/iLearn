@@ -4,6 +4,8 @@ import { canSpeak, silence, speak } from "./speech.js";
 import { CheckIcon, PlaceArt } from "./components/art.jsx";
 import PlaySession from "./components/PlaySession.jsx";
 import CommunitySession from "./components/CommunitySession.jsx";
+import ExtraLessonSession from "./components/ExtraLessonSession.jsx";
+import { EXTRA_LESSONS } from "./extraLessons.js";
 
 const STORAGE_KEY = "techtown-progress-v1";
 
@@ -13,6 +15,8 @@ const EMPTY_PROGRESS = {
   practice: false,
   mission: false,
   communityTutorial: false,
+  callTutorial: false,
+  safetyTutorial: false,
 };
 
 function loadProgress() {
@@ -82,10 +86,13 @@ export default function App() {
           <Town
             headingRef={headingRef}
             mission={progress.mission}
+            progress={progress}
             onOpenLesson={() => setView({ name: "lesson" })}
             onOpenPlace={(placeId) =>
               setView(
-                placeId === "community" && progress.mission
+                EXTRA_LESSONS[placeId]
+                  ? { name: "extra-lesson", placeId }
+                  : placeId === "community" && progress.mission
                   ? { name: "community" }
                   : { name: "future", placeId },
               )
@@ -119,6 +126,25 @@ export default function App() {
             onTown={() => setView({ name: "town" })}
           />
         ) : null}
+        {view.name === "extra-lesson" ? (
+          <article className="sheet">
+            <button className="secondary-btn" onClick={() => setView({ name: "town" })}>Back</button>
+            <p className="kicker plain">{place.name}</p>
+            <h1 ref={headingRef} tabIndex={-1}>{place.lessonTitle}</h1>
+            <PlaceArt id={place.id} unlocked />
+            <p>{EXTRA_LESSONS[place.id].description}</p>
+            <button className="mode-card" onClick={() => setView({ name: "extra-play", placeId: place.id })}>
+              <span className="kicker">{progress[EXTRA_LESSONS[place.id].progressKey] ? "✓ Finished" : "Start here"}</span>
+              <span className="place-name">Tutorial</span>
+              <span className="place-summary">Follow the glowing buttons. You can replay each step.</span>
+            </button>
+          </article>
+        ) : null}
+        {view.name === "extra-play" ? (
+          <ExtraLessonSession key={view.placeId} lessonId={view.placeId} speechOn={progress.speech} onToggleSpeech={toggleSpeech}
+            onBack={() => setView({ name: "extra-lesson", placeId: view.placeId })}
+            onDone={() => mark(EXTRA_LESSONS[view.placeId].progressKey)} onTown={() => setView({ name: "town" })} />
+        ) : null}
         {view.name === "play" ? (
           <PlaySession
             key={view.mode}
@@ -142,7 +168,7 @@ export default function App() {
   );
 }
 
-function Town({ headingRef, mission, onOpenLesson, onOpenPlace }) {
+function Town({ headingRef, mission, progress, onOpenLesson, onOpenPlace }) {
   const nextPlaceId = mission ? "community" : null;
 
   return (
@@ -203,7 +229,9 @@ function Town({ headingRef, mission, onOpenLesson, onOpenPlace }) {
             >
               <PlaceArt id={item.id} unlocked={unlocked} />
               <span className="kicker">
-                {unlocked ? (
+                {EXTRA_LESSONS[item.id] && progress[EXTRA_LESSONS[item.id].progressKey] ? (
+                  <><CheckIcon /> Finished</>
+                ) : unlocked ? (
                   <>
                     <CheckIcon /> Unlocked
                   </>
@@ -215,7 +243,7 @@ function Town({ headingRef, mission, onOpenLesson, onOpenPlace }) {
                   item.kicker
                 )}
               </span>
-              <span className="place-name">{item.name}</span>
+              <span className="place-name">{item.lessonTitle}</span>
               <span className="place-summary">{item.summary}</span>
             </button>
           );

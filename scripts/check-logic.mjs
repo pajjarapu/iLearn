@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { createLessonPhone, EXTRA_LESSONS, extraGuidance, matchesExtraStep } from "../src/extraLessons.js";
 import {
   canonicalLevel,
   createPhone,
@@ -216,5 +217,28 @@ const drafted = walk([
 const leftHome = apply(drafted, { type: "home" });
 assert.equal(canonicalLevel(leftHome), null);
 assert.equal(leftHome.drafts.maya.photoId, "flowers");
+
+for (const lessonId of ["cafe", "safety"]) {
+  let lessonPhone = createLessonPhone(lessonId);
+  for (const expected of EXTRA_LESSONS[lessonId].steps) {
+    const guidance = extraGuidance(lessonPhone);
+    assert.equal(guidance.complete, false);
+    assert.equal(guidance.target, expected.target);
+    const action = { type: expected.type, ...(expected.app ? { app: expected.app } : {}), ...(expected.contactId ? { contactId: expected.contactId } : {}) };
+    assert.equal(matchesExtraStep(guidance, action), true);
+    assert.equal(matchesExtraStep(guidance, { type: "unsafe-link" }), false);
+    lessonPhone = apply(lessonPhone, action);
+  }
+  assert.equal(extraGuidance(lessonPhone).complete, true);
+  if (lessonId === "cafe") {
+    assert.equal(lessonPhone.screen, "call-contact");
+    assert.equal(lessonPhone.contactId, "rosa", "Ending a call must preserve the contact required by the returning contact page");
+  }
+}
+
+assert.equal(apply(createLessonPhone("cafe"), { type: "end-call" }).callCompleted, false);
+assert.equal(matchesExtraStep(EXTRA_LESSONS.cafe.steps[2], { type: "open-call-contact", contactId: "maya" }), false);
+const unreadClues = walk([{ type: "open-app", app: "messages" }]);
+assert.equal(apply(unreadClues, { type: "confirm-report" }).suspiciousReported, false);
 
 console.log("TechTown lesson checks passed.");
